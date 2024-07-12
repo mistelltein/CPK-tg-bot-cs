@@ -1,0 +1,51 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace CPK_Bot.Models.Configurations;
+
+public class ProfileConfigurations : IEntityTypeConfiguration<Profile>
+{
+    public void Configure(EntityTypeBuilder<Profile> builder)
+    {
+        builder.HasKey(b => b.Id);
+
+        builder.HasIndex(b => b.Username).IsUnique();
+        builder.Property(b => b.Username).IsRequired();
+
+        builder.Property(b => b.Rating).IsRequired();
+            
+        builder.Property(b => b.Role).IsRequired();
+    }
+}
+
+public class BackendQuestionConfigurations : IEntityTypeConfiguration<BackendQuestion>
+{
+    public void Configure(EntityTypeBuilder<BackendQuestion> builder)
+    {
+        builder.HasKey(bq => bq.QuestionId);
+
+        builder.Property(bq => bq.Question)
+            .HasMaxLength(1000)
+            .IsRequired(false);
+
+        builder.Property(bq => bq.Answer)
+            .HasMaxLength(10000)
+            .IsRequired(false);
+    }
+}
+
+public class FrontendQuestionConfigurations : IEntityTypeConfiguration<FrontendQuestion>
+{
+    public void Configure(EntityTypeBuilder<FrontendQuestion> builder)
+    {
+        builder.HasKey(fq => fq.QuestionId);
+            
+        builder.Property(fq => fq.Question)
+            .HasMaxLength(1000)
+            .IsRequired(false);
+
+        builder.Property(fq => fq.Answer)
+            .HasMaxLength(10000)
+            .IsRequired(false);
+    }
+}
