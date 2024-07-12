@@ -113,8 +113,8 @@ public class BotService
                     "/backendQuestions\n" +
                     "/giveBackendQuestion\n" +
                     "/frontendQuestions\n" +
-                    "/giveFrontendQuestion\n" +
-                    "/rate [username] [score] - Change user rating (+ or -)",
+                    "/giveFrontendQuestion\n" + 
+                    "/finduser @username\n",
                     cancellationToken: cancellationToken
                 );
                 break;
@@ -128,7 +128,7 @@ public class BotService
             case "/profile":
                 await ShowProfile(botClient, chatId, message.From!.Username!, dbContext, cancellationToken);
                 break;
-
+            
             case "/backendQuestions@it_kyrgyzstan_cs_bot":
             case "/backendQuestions":
                 await botClient.SendTextMessageAsync(chatId, "Ждем реализацию команды", cancellationToken: cancellationToken);
@@ -158,11 +158,28 @@ public class BotService
                 }
                 await botClient.SendTextMessageAsync(chatId, "Cleanup completed.", cancellationToken: cancellationToken);
                 break;
+            
+            case var command when command.StartsWith("/finduser"):
+                var parts = message.Text.Split(' ');
+                if (parts.Length == 2)
+                {
+                    var username = parts[1].TrimStart('@');
+                    await ShowProfileByUsername(botClient, chatId, username, dbContext, cancellationToken);
+                }
+                else
+                {
+                    await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /finduser @username", cancellationToken: cancellationToken);
+                }
+                break; 
 
             default:
                 if (message.Text!.StartsWith("/rate"))
                 {
                     await HandleRateCommand(botClient, message, chatId, dbContext, cancellationToken);
+                }
+                else if (message.Text!.StartsWith("/setrole"))
+                {
+                    await HandleSetRoleCommand(botClient, message, chatId, dbContext, cancellationToken);
                 }
                 break;
         }
@@ -210,7 +227,38 @@ public class BotService
 
         await botClient.SendTextMessageAsync(chatId, $"Социальный рейтинг пользователя @{profile.Username} теперь {profile.Rating}.", cancellationToken: cancellationToken);
     }
+    
+    private async Task HandleSetRoleCommand(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        if (message.From?.Username != "arrogganz")
+        {
+            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на изменение ролей.", cancellationToken: cancellationToken);
+            return;
+        }
 
+        var parts = message.Text!.Split(' ');
+        if (parts.Length != 3)
+        {
+            await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /setrole [username] [role]", cancellationToken: cancellationToken);
+            return;
+        }
+
+        var username = parts[1].TrimStart('@');
+        var role = parts[2];
+
+        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Username == username, cancellationToken);
+        if (profile == null)
+        {
+            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            return;
+        }
+
+        profile.Role = role;
+        dbContext.Profiles.Update(profile);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        await botClient.SendTextMessageAsync(chatId, $"Роль пользователя @{profile.Username} теперь {profile.Role}.", cancellationToken: cancellationToken);
+    }
 
     private async Task RegisterAllMembers(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
     {
@@ -261,11 +309,6 @@ public class BotService
                     existingProfile.Username = user.Username;
                     changed = true;
                 }
-                if (role != "Member" && existingProfile.Role != role)
-                {
-                    existingProfile.Role = role;
-                    changed = true;
-                }
                 if (changed)
                 {
                     dbContext.Profiles.Update(existingProfile);
@@ -292,7 +335,20 @@ public class BotService
             await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
         }
     }
-
+    
+    private async Task ShowProfileByUsername(ITelegramBotClient botClient, long chatId, string username, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Username == username, cancellationToken);
+        if (profile != null)
+        {
+            await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя @{profile.Username}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
+        }
+        else
+        {
+            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+        }
+    }
+    
     private async Task HandleMessageTypeAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         switch (message.Type)
