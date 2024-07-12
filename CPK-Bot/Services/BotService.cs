@@ -110,18 +110,11 @@ public class BotService
                     chatId,
                     "Привет, вот мои команды:\n" +
                     "/profile\n" +
-                    "/backendQuestions\n" +
-                    "/giveBackendQuestion\n" +
-                    "/frontendQuestions\n" +
-                    "/giveFrontendQuestion\n" + 
+                    "/givebackendquestions\n" +
+                    "/givefrontendquestion\n" + 
                     "/finduser @username\n",
                     cancellationToken: cancellationToken
                 );
-                break;
-
-            case "/registerAll@it_kyrgyzstan_cs_bot":
-            case "/registerAll":
-                await RegisterAllMembers(botClient, chatId, dbContext, cancellationToken);
                 break;
 
             case "/profile@it_kyrgyzstan_cs_bot":
@@ -129,24 +122,28 @@ public class BotService
                 await ShowProfile(botClient, chatId, message.From!.Username!, dbContext, cancellationToken);
                 break;
             
-            case "/backendQuestions@it_kyrgyzstan_cs_bot":
-            case "/backendQuestions":
-                await botClient.SendTextMessageAsync(chatId, "Ждем реализацию команды", cancellationToken: cancellationToken);
+            case var command when command.StartsWith("/addbackendquestion"):
+                await AddBackendQuestion(botClient, chatId, message.Text, dbContext, cancellationToken, message);
                 break;
 
-            case "/giveBackendQuestion@it_kyrgyzstan_cs_bot":
-            case "/giveBackendQuestion":
-                await botClient.SendTextMessageAsync(chatId, "Ждем реализацию команды", cancellationToken: cancellationToken);
+            case var command when command.StartsWith("/backendquestions"):
+                await ListBackendQuestions(botClient, chatId, dbContext, cancellationToken);
                 break;
 
-            case "/frontendQuestions@it_kyrgyzstan_cs_bot":
-            case "/frontendQuestions":
-                await botClient.SendTextMessageAsync(chatId, "Ждем реализацию команды", cancellationToken: cancellationToken);
+            case var command when command.StartsWith("/givebackendquestions"):
+                await GiveBackendQuestion(botClient, chatId, dbContext, cancellationToken);
                 break;
 
-            case "/giveFrontendQuestion@it_kyrgyzstan_cs_bot":
-            case "/giveFrontendQuestion":
-                await botClient.SendTextMessageAsync(chatId, "Ждем реализацию команды", cancellationToken: cancellationToken);
+            case var command when command.StartsWith("/addfrontendquestion"):
+                await AddFrontendQuestion(botClient, chatId, message.Text, dbContext, cancellationToken, message);
+                break;
+
+            case var command when command.StartsWith("/frontendquestions"):
+                await ListFrontendQuestions(botClient, chatId, dbContext, cancellationToken);
+                break;
+
+            case var command when command.StartsWith("/givefrontendquestion"):
+                await GiveFrontendQuestion(botClient, chatId, dbContext, cancellationToken);
                 break;
             
             case "/cleanup":
@@ -184,7 +181,133 @@ public class BotService
                 break;
         }
     }
+    
+    private async Task AddBackendQuestion(ITelegramBotClient botClient, long chatId, string messageText, BotDbContext dbContext, CancellationToken cancellationToken, Message message)
+    {
+        if (message.From?.Username != "arrogganz")
+        {
+            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на изменение рейтинга.", cancellationToken: cancellationToken);
+            return;
+        }
+        
+        var parts = messageText.Split('|');
+        if (parts.Length != 3)
+        {
+            await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /addbackendquestion | [вопрос] | [ответ]", cancellationToken: cancellationToken);
+            return;
+        }
 
+        var question = new BackendQuestion
+        {
+            Question = parts[1].Trim(),
+            Answer = parts[2].Trim()
+        };
+
+        dbContext.BackendQuestions.Add(question);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        await botClient.SendTextMessageAsync(chatId, "Вопрос и ответ успешно добавлены.", cancellationToken: cancellationToken);
+    }
+
+    private async Task ListBackendQuestions(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var questions = await dbContext.BackendQuestions.Select(q => q.Question).ToListAsync(cancellationToken);
+        if (!questions.Any())
+        {
+            await botClient.SendTextMessageAsync(chatId, "Вопросы не найдены.", cancellationToken: cancellationToken);
+            return;
+        }
+
+        var questionList = string.Join("\n- ", questions.Prepend("Список вопросов:"));
+        var formattedMessage = $"*{questionList}*";
+
+        await botClient.SendTextMessageAsync(
+            chatId, 
+            formattedMessage, 
+            parseMode: ParseMode.Markdown, 
+            cancellationToken: cancellationToken
+        );
+    }
+
+    private async Task GiveBackendQuestion(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var random = new Random();
+        var questionsCount = await dbContext.BackendQuestions.CountAsync(cancellationToken);
+        if (questionsCount == 0)
+        {
+            await botClient.SendTextMessageAsync(chatId, "Вопросы не найдены.", cancellationToken: cancellationToken);
+            return;
+        }
+
+        var randomIndex = random.Next(questionsCount);
+        var question = await dbContext.BackendQuestions.Skip(randomIndex).FirstAsync(cancellationToken);
+
+        await botClient.SendTextMessageAsync(chatId, $"Вопрос: {question.Question}\nОтвет: {question.Answer}", cancellationToken: cancellationToken);
+    }
+    
+    private async Task AddFrontendQuestion(ITelegramBotClient botClient, long chatId, string messageText, BotDbContext dbContext, CancellationToken cancellationToken, Message message)
+    {
+        if (message.From?.Username != "arrogganz")
+        {
+            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на добавление вопросов.", cancellationToken: cancellationToken);
+            return;
+        }
+        
+        var parts = messageText.Split('|');
+        if (parts.Length != 3)
+        {
+            await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /addfrontendquestion | [вопрос] | [ответ]", cancellationToken: cancellationToken);
+            return;
+        }
+
+        var question = new FrontendQuestion
+        {
+            Question = parts[1].Trim(),
+            Answer = parts[2].Trim()
+        };
+
+        dbContext.FrontendQuestions.Add(question);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        await botClient.SendTextMessageAsync(chatId, "Вопрос и ответ успешно добавлены.", cancellationToken: cancellationToken);
+    }
+
+    private async Task ListFrontendQuestions(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var questions = await dbContext.FrontendQuestions.Select(q => q.Question).ToListAsync(cancellationToken);
+        if (!questions.Any())
+        {
+            await botClient.SendTextMessageAsync(chatId, "Вопросы не найдены.", cancellationToken: cancellationToken);
+            return;
+        }
+
+        var questionList = string.Join("\n- ", questions.Prepend("Список вопросов:"));
+        var formattedMessage = $"*{questionList}*";
+
+        await botClient.SendTextMessageAsync(
+            chatId, 
+            formattedMessage, 
+            parseMode: ParseMode.Markdown, 
+            cancellationToken: cancellationToken
+        );
+    }
+
+    private async Task GiveFrontendQuestion(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var random = new Random();
+        var questionsCount = await dbContext.FrontendQuestions.CountAsync(cancellationToken);
+        if (questionsCount == 0)
+        {
+            await botClient.SendTextMessageAsync(chatId, "Вопросы не найдены.", cancellationToken: cancellationToken);
+            return;
+        }
+
+        var randomIndex = random.Next(questionsCount);
+        var question = await dbContext.FrontendQuestions.Skip(randomIndex).FirstAsync(cancellationToken);
+
+        await botClient.SendTextMessageAsync(chatId, $"Вопрос: {question.Question}\nОтвет: {question.Answer}", cancellationToken: cancellationToken);
+    }
+    
     private async Task HandleRateCommand(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
@@ -258,31 +381,6 @@ public class BotService
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await botClient.SendTextMessageAsync(chatId, $"Роль пользователя @{profile.Username} теперь {profile.Role}.", cancellationToken: cancellationToken);
-    }
-
-    private async Task RegisterAllMembers(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
-    {
-        await botClient.SendTextMessageAsync(chatId, "Начинаю регистрацию активных участников чата...", cancellationToken: cancellationToken);
-
-        var registeredCount = 0;
-
-        var chat = await botClient.GetChatAsync(chatId, cancellationToken);
-
-        if (chat.Type == ChatType.Private)
-        {
-            await botClient.SendTextMessageAsync(chatId, "Эта команда работает только в групповых чатах.", cancellationToken: cancellationToken);
-            return;
-        }
-
-        var admins = await botClient.GetChatAdministratorsAsync(chatId, cancellationToken);
-        foreach (var admin in admins)
-        {
-            await RegisterUser(admin.User, "Admin", dbContext, cancellationToken);
-            registeredCount++;
-        }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-        await botClient.SendTextMessageAsync(chatId, $"Зарегистрировано {registeredCount} активных участников чата.", cancellationToken: cancellationToken);
     }
 
     private async Task RegisterUser(User user, string role, BotDbContext dbContext, CancellationToken cancellationToken)
