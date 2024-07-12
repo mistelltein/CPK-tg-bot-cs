@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using CPK_Bot.Data.Context;
 using CPK_Bot.Services;
 using Microsoft.EntityFrameworkCore;
+using Telegram.Bot;
 
 
 namespace CPK_Bot;
@@ -22,7 +23,10 @@ internal static class Program
             {
                 services.AddDbContext<BotDbContext>(options =>
                     options.UseSqlite(context.Configuration.GetConnectionString("DefaultConnection")));
-
+                
+                var token = context.Configuration["TelegramBotApiKey"];
+                services.AddSingleton(new TelegramBotClient(token!));
+                
                 services.AddSingleton<BotService>();
             })
             .Build();

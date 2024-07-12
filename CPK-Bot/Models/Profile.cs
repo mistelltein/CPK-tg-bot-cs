@@ -4,11 +4,11 @@ namespace CPK_Bot.Models;
 
 public class Profile
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
     [MaxLength(100)]
     public string? Username { get; set; }
-    
-    public int Rating { get; set; }
+
+    public int Rating { get; set; } = 0;
     
     [MaxLength(100)]
     public string? Role { get; set; }
