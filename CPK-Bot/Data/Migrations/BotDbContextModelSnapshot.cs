@@ -60,6 +60,10 @@ namespace CPK_Bot.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Rating")
                         .HasColumnType("INTEGER");
 

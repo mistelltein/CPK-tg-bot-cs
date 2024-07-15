@@ -12,13 +12,14 @@ public class ProfileService
     {
         try
         {
-            var existingProfile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Username == user.Username, cancellationToken);
+            var existingProfile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == user.Id, cancellationToken);
             if (existingProfile == null)
             {
                 var profile = new Profile
                 {
                     Id = user.Id,
                     Username = user.Username,
+                    FirstName = user.FirstName,
                     Rating = 0,
                     Role = role
                 };
@@ -30,6 +31,11 @@ public class ProfileService
                 if (existingProfile.Username != user.Username)
                 {
                     existingProfile.Username = user.Username;
+                    changed = true;
+                }
+                if (existingProfile.FirstName != user.FirstName)
+                {
+                    existingProfile.FirstName = user.FirstName;
                     changed = true;
                 }
                 if (changed)
@@ -45,16 +51,18 @@ public class ProfileService
         }
     }
 
-    public async Task ShowProfileAsync(ITelegramBotClient botClient, long chatId, string username, BotDbContext dbContext, CancellationToken cancellationToken)
+
+    public async Task ShowProfileAsync(ITelegramBotClient botClient, long chatId, long userId, BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
         if (profile != null)
         {
-            await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя @{profile.Username}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
+            var displayName = string.IsNullOrEmpty(profile.Username) ? profile.FirstName : $"@{profile.Username}";
+            await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя {displayName}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
         }
         else
         {
-            Console.WriteLine($"Profile not found for username: {username}");
+            Console.WriteLine($"Profile not found for user ID: {userId}");
             await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
         }
     }
@@ -80,40 +88,44 @@ public class ProfileService
             return;
         }
 
-        var parts = message.Text!.Split(' ');
-        if (parts.Length != 3)
+        long userId;
+        int score;
+
+        if (message.ReplyToMessage != null)
         {
-            await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /rate [username] [score]", cancellationToken: cancellationToken);
-            return;
+            userId = message.ReplyToMessage.From.Id;
+            var parts = message.Text!.Split(' ');
+
+            if (parts.Length != 2 || !int.TryParse(parts[1], out score))
+            {
+                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /rate [score]", cancellationToken: cancellationToken);
+                return;
+            }
+        }
+        else
+        {
+            var parts = message.Text!.Split(' ');
+            if (parts.Length != 3 || !long.TryParse(parts[1], out userId) || !int.TryParse(parts[2], out score))
+            {
+                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /rate [userId] [score] или ответьте на сообщение пользователя командой /rate [score]", cancellationToken: cancellationToken);
+                return;
+            }
         }
 
-        var username = parts[1].TrimStart('@');
-        if (!int.TryParse(parts[2], out var score))
-        {
-            await botClient.SendTextMessageAsync(chatId, "Неверный формат оценки. Используйте целое число.", cancellationToken: cancellationToken);
-            return;
-        }
-
-        var profiles = await dbContext.Profiles.Where(p => p.Username == username).ToListAsync(cancellationToken);
-        if (profiles.Count == 0)
+        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
+        if (profile == null)
         {
             await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
             return;
         }
 
-        if (profiles.Count > 1)
-        {
-            await botClient.SendTextMessageAsync(chatId, "Обнаружено несколько профилей с таким именем пользователя. Пожалуйста, уточните.", cancellationToken: cancellationToken);
-            return;
-        }
-
-        var profile = profiles.First();
         profile.Rating += score;
         dbContext.Profiles.Update(profile);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await botClient.SendTextMessageAsync(chatId, $"Социальный рейтинг пользователя @{profile.Username} теперь {profile.Rating}.", cancellationToken: cancellationToken);
     }
+
 
     public async Task HandleSetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
     {
@@ -123,17 +135,35 @@ public class ProfileService
             return;
         }
 
-        var parts = message.Text!.Split(' ');
-        if (parts.Length != 3)
+        long userId;
+        string role;
+
+        if (message.ReplyToMessage != null)
         {
-            await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /setrole [username] [role]", cancellationToken: cancellationToken);
-            return;
+            userId = message.ReplyToMessage.From.Id;
+            var parts = message.Text!.Split(' ');
+
+            if (parts.Length != 2)
+            {
+                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /setrole [role]", cancellationToken: cancellationToken);
+                return;
+            }
+
+            role = parts[1];
+        }
+        else
+        {
+            var parts = message.Text!.Split(' ');
+            if (parts.Length != 3 || !long.TryParse(parts[1], out userId))
+            {
+                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /setrole [userId] [role] или ответьте на сообщение пользователя командой /setrole [role]", cancellationToken: cancellationToken);
+                return;
+            }
+
+            role = parts[2];
         }
 
-        var username = parts[1].TrimStart('@');
-        var role = parts[2];
-
-        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
         if (profile == null)
         {
             await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);

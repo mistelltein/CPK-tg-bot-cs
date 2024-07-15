@@ -11,7 +11,7 @@ namespace CPK_Bot;
 
 internal static class Program
 {
-    private static Task Main()
+    private static async Task Main()
     {
         var host = Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((context, config) =>
@@ -37,6 +37,6 @@ internal static class Program
 
         var botService = host.Services.GetRequiredService<BotService>();
         botService.Start();
-        return Task.CompletedTask;
+        await host.RunAsync();
     }
 }

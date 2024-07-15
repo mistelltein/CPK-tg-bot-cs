@@ -15,6 +15,7 @@ public class ProfileConfigurations : IEntityTypeConfiguration<Profile>
         builder.Property(b => b.Rating).IsRequired();
             
         builder.Property(b => b.Role).IsRequired();
+        builder.Property(b => b.FirstName).HasMaxLength(100).IsRequired(false);
     }
 }
 

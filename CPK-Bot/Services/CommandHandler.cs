@@ -54,7 +54,7 @@ public class CommandHandler(IServiceProvider serviceProvider)
 
             case "/profile@it_kyrgyzstan_cs_bot":
             case "/profile":
-                await profileService.ShowProfileAsync(botClient, chatId, message.From!.Username!, dbContext, cancellationToken);
+                await profileService.ShowProfileAsync(botClient, chatId, message.From!.Id, dbContext, cancellationToken);
                 break;
 
             case var command when command.StartsWith("/addbackendquestion"):
