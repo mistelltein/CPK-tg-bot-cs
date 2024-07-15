@@ -30,7 +30,7 @@ public class ProfileService(ILogger<ProfileService> logger)
             }
             else
             {
-                bool changed = false;
+                var changed = false;
                 if (existingProfile.Username != user.Username)
                 {
                     existingProfile.Username = user.Username;
@@ -233,16 +233,14 @@ public class ProfileService(ILogger<ProfileService> logger)
     {
         foreach (var newMember in message.NewChatMembers!)
         {
-            if (newMember.Id != botClient.BotId)
-            {
-                await RegisterUserAsync(newMember, "Member", dbContext, cancellationToken);
-                await SendMessageIfNotBlockedAsync(
-                    botClient,
-                    chatId,
-                    $"Добро пожаловать, {newMember.Username}!\nМожете, пожалуйста, представиться?\nЕсли есть интересующие вас вопросы, не стесняйтесь их задавать",
-                    cancellationToken
-                );
-            }
+            if (newMember.Id == botClient.BotId) continue;
+            await RegisterUserAsync(newMember, "Member", dbContext, cancellationToken);
+            await SendMessageIfNotBlockedAsync(
+                botClient,
+                chatId,
+                $"Добро пожаловать, {newMember.Username}!\nМожете, пожалуйста, представиться?\nЕсли есть интересующие вас вопросы, не стесняйтесь их задавать",
+                cancellationToken
+            );
         }
         try
         {
@@ -301,11 +299,7 @@ public class ProfileService(ILogger<ProfileService> logger)
     {
         try
         {
-            var chatMember = await botClient.GetChatMemberAsync(chatId, (long)botClient.BotId!, cancellationToken);
-            if (chatMember.Status != ChatMemberStatus.Kicked && chatMember.Status != ChatMemberStatus.Left)
-            {
-                await botClient.SendTextMessageAsync(chatId, text, cancellationToken: cancellationToken);
-            }
+            await botClient.SendTextMessageAsync(chatId, text, cancellationToken: cancellationToken);
         }
         catch (ApiRequestException ex) when (ex.ErrorCode == 403)
         {
@@ -316,4 +310,5 @@ public class ProfileService(ILogger<ProfileService> logger)
             logger.LogError($"An error occurred while sending message to chatId: {chatId}. Exception: {ex.Message}");
         }
     }
+
 }
