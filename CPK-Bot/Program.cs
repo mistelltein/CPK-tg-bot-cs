@@ -28,6 +28,10 @@ internal static class Program
                 services.AddSingleton(new TelegramBotClient(token!));
                 
                 services.AddSingleton<BotService>();
+                services.AddTransient<UpdateHandler>(); 
+                services.AddTransient<CommandHandler>(); 
+                services.AddTransient<ProfileService>(); 
+                services.AddTransient<QuestionService>();
             })
             .Build();
 

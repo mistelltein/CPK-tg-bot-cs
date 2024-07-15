@@ -4,12 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CPK_Bot.Data.Context;
 
-public class BotDbContext : DbContext
+public class BotDbContext(DbContextOptions<BotDbContext> options) : DbContext(options)
 {
-    public BotDbContext(DbContextOptions<BotDbContext> options) : base(options)
-    {
-    }
-
     public DbSet<Profile> Profiles { get; set; }
     public DbSet<FrontendQuestion> FrontendQuestions { get; set; }
     public DbSet<BackendQuestion> BackendQuestions { get; set; }
