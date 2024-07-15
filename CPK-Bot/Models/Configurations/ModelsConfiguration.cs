@@ -10,11 +10,12 @@ public class ProfileConfigurations : IEntityTypeConfiguration<Profile>
         builder.HasKey(b => b.Id);
 
         builder.HasIndex(b => b.Username).IsUnique();
-        builder.Property(b => b.Username).IsRequired();
+        builder.Property(b => b.Username).IsRequired(false);
 
         builder.Property(b => b.Rating).IsRequired();
             
         builder.Property(b => b.Role).IsRequired();
+        builder.Property(b => b.FirstName).HasMaxLength(100).IsRequired(false);
     }
 }
 

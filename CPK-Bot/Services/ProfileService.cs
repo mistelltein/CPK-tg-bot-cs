@@ -20,6 +20,7 @@ namespace CPK_Bot.Services
                     {
                         Id = user.Id,
                         Username = user.Username,
+                        FirstName = user.FirstName,
                         Rating = 0,
                         Role = role
                     };
@@ -31,6 +32,11 @@ namespace CPK_Bot.Services
                     if (existingProfile.Username != user.Username)
                     {
                         existingProfile.Username = user.Username;
+                        changed = true;
+                    }
+                    if (existingProfile.FirstName != user.FirstName)
+                    {
+                        existingProfile.FirstName = user.FirstName;
                         changed = true;
                     }
                     if (changed)
@@ -55,7 +61,7 @@ namespace CPK_Bot.Services
                     .SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
                 if (profile != null)
                 {
-                    var displayName = string.IsNullOrEmpty(profile.Username) ? "NoUsername" : $"@{profile.Username}";
+                    var displayName = string.IsNullOrEmpty(profile.Username) ? $"{profile.FirstName}" : $"@{profile.Username}";
                     await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя {displayName}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
                 }
                 else
