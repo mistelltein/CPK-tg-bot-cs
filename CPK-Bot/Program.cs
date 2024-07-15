@@ -22,7 +22,7 @@ internal static class Program
             .ConfigureServices((context, services) =>
             {
                 services.AddDbContext<BotDbContext>(options =>
-                    options.UseSqlite(context.Configuration.GetConnectionString("DefaultConnection")));
+                    options.UseNpgsql(context.Configuration.GetConnectionString("DefaultConnection")));
                 
                 var token = context.Configuration["TelegramBotApiKey"];
                 services.AddSingleton(new TelegramBotClient(token!));

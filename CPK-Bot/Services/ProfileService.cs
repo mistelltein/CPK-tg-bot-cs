@@ -7,15 +7,8 @@ using Telegram.Bot.Types;
 
 namespace CPK_Bot.Services
 {
-    public class ProfileService
+    public class ProfileService(ILogger<ProfileService> logger)
     {
-        private readonly ILogger<ProfileService> _logger;
-
-        public ProfileService(ILogger<ProfileService> logger)
-        {
-            _logger = logger;
-        }
-
         public async Task RegisterUserAsync(User user, string role, BotDbContext dbContext, CancellationToken cancellationToken)
         {
             try
@@ -34,7 +27,7 @@ namespace CPK_Bot.Services
                 }
                 else
                 {
-                    bool changed = false;
+                    var changed = false;
                     if (existingProfile.Username != user.Username)
                     {
                         existingProfile.Username = user.Username;
@@ -49,7 +42,7 @@ namespace CPK_Bot.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error processing user {user.Id}: {ex.Message}");
+                logger.LogError($"Error processing user {user.Id}: {ex.Message}");
             }
         }
 
@@ -67,18 +60,18 @@ namespace CPK_Bot.Services
                 }
                 else
                 {
-                    _logger.LogWarning($"Profile not found for user ID: {userId}");
+                    logger.LogWarning($"Profile not found for user ID: {userId}");
                     await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
                 }
             }
             catch (DbUpdateException dbEx)
             {
-                _logger.LogError($"Database error: {dbEx.Message}");
+                logger.LogError($"Database error: {dbEx.Message}");
                 await botClient.SendTextMessageAsync(chatId, "Произошла ошибка базы данных. Пожалуйста, повторите попытку позже.", cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error showing profile for user ID: {userId}. Exception: {ex.Message}");
+                logger.LogError($"Error showing profile for user ID: {userId}. Exception: {ex.Message}");
                 await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при попытке отображения профиля.", cancellationToken: cancellationToken);
             }
         }
@@ -111,7 +104,7 @@ namespace CPK_Bot.Services
 
             if (message.ReplyToMessage != null)
             {
-                userId = message.ReplyToMessage.From.Id;
+                userId = message.ReplyToMessage.From!.Id;
                 var parts = message.Text!.Split(' ');
 
                 if (parts.Length != 2 || !int.TryParse(parts[1], out score))
@@ -158,7 +151,7 @@ namespace CPK_Bot.Services
 
             if (message.ReplyToMessage != null)
             {
-                userId = message.ReplyToMessage.From.Id;
+                userId = message.ReplyToMessage.From!.Id;
                 var parts = message.Text!.Split(' ');
 
                 if (parts.Length != 2)
