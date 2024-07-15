@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace CPK_Bot.Services;
 
@@ -23,7 +22,7 @@ public class ProfileService(ILogger<ProfileService> logger)
                     Id = user.Id,
                     Username = user.Username,
                     FirstName = user.FirstName,
-                    Rating = 0,
+                    Rating = 30,
                     Role = role
                 };
                 await dbContext.Profiles.AddAsync(profile, cancellationToken);
@@ -234,7 +233,7 @@ public class ProfileService(ILogger<ProfileService> logger)
         foreach (var newMember in message.NewChatMembers!)
         {
             if (newMember.Id == botClient.BotId) continue;
-            await RegisterUserAsync(newMember, "Member", dbContext, cancellationToken);
+            await RegisterUserAsync(newMember, "Newbie-Developer", dbContext, cancellationToken);
             await SendMessageIfNotBlockedAsync(
                 botClient,
                 chatId,

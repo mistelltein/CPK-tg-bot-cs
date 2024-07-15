@@ -11,8 +11,7 @@ public class Profile
     [MaxLength(100)]
     public string? FirstName { get; set; }
     
-    public int Rating { get; set; } = 0;
-    
-    [MaxLength(100)]
-    public string? Role { get; set; }
+    public int Rating { get; set; } = 30;
+
+    [MaxLength(100)] public string? Role { get; set; } = "Newbie-Developer";
 }
