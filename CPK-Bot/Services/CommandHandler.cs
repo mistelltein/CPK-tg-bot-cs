@@ -113,6 +113,10 @@ public class CommandHandler(IServiceProvider serviceProvider)
                 {
                     await profileService.HandleSetRoleCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
                 }
+                else if (message.Text!.StartsWith("/ban"))
+                {
+                    await profileService.HandleBanCommandAsync(botClient, dbContext, message, chatId, cancellationToken);
+                }
                 break;
         }
     }
