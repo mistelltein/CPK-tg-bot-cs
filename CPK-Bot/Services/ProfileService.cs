@@ -1,6 +1,7 @@
 using CPK_Bot.Data.Context;
 using CPK_Bot.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -8,6 +9,13 @@ namespace CPK_Bot.Services;
 
 public class ProfileService
 {
+    private readonly ILogger<ProfileService> _logger;
+
+    public ProfileService(ILogger<ProfileService> logger)
+    {
+        _logger = logger;
+    }
+    
     public async Task RegisterUserAsync(User user, string role, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         try
@@ -19,7 +27,6 @@ public class ProfileService
                 {
                     Id = user.Id,
                     Username = user.Username,
-                    FirstName = user.FirstName,
                     Rating = 0,
                     Role = role
                 };
@@ -33,11 +40,6 @@ public class ProfileService
                     existingProfile.Username = user.Username;
                     changed = true;
                 }
-                if (existingProfile.FirstName != user.FirstName)
-                {
-                    existingProfile.FirstName = user.FirstName;
-                    changed = true;
-                }
                 if (changed)
                 {
                     dbContext.Profiles.Update(existingProfile);
@@ -47,29 +49,41 @@ public class ProfileService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error processing user {user.Id}: {ex.Message}");
+            _logger.LogError($"Error processing user {user.Id}: {ex.Message}");
         }
     }
 
-
     public async Task ShowProfileAsync(ITelegramBotClient botClient, long chatId, long userId, BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
-        if (profile != null)
+        try
         {
-            var displayName = string.IsNullOrEmpty(profile.Username) ? profile.FirstName : $"@{profile.Username}";
-            await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя {displayName}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
+            var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
+            if (profile != null)
+            {
+                var displayName = string.IsNullOrEmpty(profile.Username) ? "Username отсутствует" : $"@{profile.Username}";
+                await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя {displayName}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
+            }
+            else
+            {
+                _logger.LogWarning($"Profile not found for user ID: {userId}");
+                await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            }
         }
-        else
+        catch (DbUpdateException dbEx)
         {
-            Console.WriteLine($"Profile not found for user ID: {userId}");
-            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            _logger.LogError($"Database error: {dbEx.Message}");
+            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка базы данных. Пожалуйста, повторите попытку позже.", cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error showing profile for user ID: {userId}. Exception: {ex.Message}");
+            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при попытке отображения профиля.", cancellationToken: cancellationToken);
         }
     }
 
     public async Task ShowProfileByUsernameAsync(ITelegramBotClient botClient, long chatId, string username, BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
         if (profile != null)
         {
             await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя @{profile.Username}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
@@ -186,7 +200,7 @@ public class ProfileService
                 await RegisterUserAsync(newMember, "Member", dbContext, cancellationToken);
                 await botClient.SendTextMessageAsync(
                     chatId,
-                    $"Добро пожаловать, {newMember.FirstName}!\nМожете, пожалуйста, представиться?\nЕсли есть интересующие вас вопросы, не стесняйтесь их задавать",
+                    $"Добро пожаловать, {newMember.Username}!\nМожете, пожалуйста, представиться?\nЕсли есть интересующие вас вопросы, не стесняйтесь их задавать",
                     replyToMessageId: message.MessageId,
                     cancellationToken: cancellationToken
                 );
@@ -209,7 +223,7 @@ public class ProfileService
         {
             await botClient.SendTextMessageAsync(
                 chatId,
-                $"{leftMember.FirstName} покинул(а) чат. Надеемся, что он/она скоро вернется!",
+                $"{leftMember.Username} покинул(а) чат. Надеемся, что он/она скоро вернется!",
                 replyToMessageId: message.MessageId,
                 cancellationToken: cancellationToken
             );

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CPK_Bot.Data.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    [Migration("20240715050818_Initial")]
+    [Migration("20240715054313_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -62,10 +62,6 @@ namespace CPK_Bot.Data.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
 
                     b.Property<int>("Rating")
                         .HasColumnType("INTEGER");

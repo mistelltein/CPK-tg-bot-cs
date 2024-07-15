@@ -34,9 +34,10 @@ internal static class Program
                 services.AddTransient<QuestionService>();
             })
             .Build();
-
+        
         var botService = host.Services.GetRequiredService<BotService>();
         botService.Start();
+        
         await host.RunAsync();
     }
 }
