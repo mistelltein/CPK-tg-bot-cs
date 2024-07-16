@@ -3,24 +3,35 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
+using Telegram.Bot.Types.Enums;
 
 namespace CPK_Bot.Services;
 
-public class BotService(TelegramBotClient bot, IServiceProvider serviceProvider, ILogger<BotService> logger)
+public class BotService
 {
+    private readonly TelegramBotClient _bot;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<BotService> _logger;
     private readonly CancellationTokenSource _cts = new();
+
+    public BotService(TelegramBotClient bot, IServiceProvider serviceProvider, ILogger<BotService> logger)
+    {
+        _bot = bot;
+        _serviceProvider = serviceProvider;
+        _logger = logger;
+    }
 
     public void Start()
     {
         var receiverOptions = new ReceiverOptions
         {
-            AllowedUpdates = []
+            AllowedUpdates = Array.Empty<UpdateType>()
         };
 
-        bot.StartReceiving(
+        _bot.StartReceiving(
             async (botClient, update, cancellationToken) =>
             {
-                using var scope = serviceProvider.CreateScope();
+                using var scope = _serviceProvider.CreateScope();
                 var updateHandler = scope.ServiceProvider.GetRequiredService<UpdateHandler>();
                 await updateHandler.HandleUpdateAsync(botClient, update, cancellationToken);
             },
@@ -29,7 +40,7 @@ public class BotService(TelegramBotClient bot, IServiceProvider serviceProvider,
             _cts.Token
         );
 
-        Console.WriteLine("Bot is up and running...");
+        _logger.LogInformation("Bot is up and running...");
         Console.ReadLine();
         _cts.Cancel();
     }
@@ -42,7 +53,7 @@ public class BotService(TelegramBotClient bot, IServiceProvider serviceProvider,
             _ => exception.ToString()
         };
 
-        logger.LogError(errorMessage);
+        _logger.LogError(errorMessage);
         return Task.CompletedTask;
     }
 }
