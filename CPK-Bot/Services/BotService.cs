@@ -3,11 +3,10 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
-using Telegram.Bot.Types.Enums;
 
 namespace CPK_Bot.Services;
 
-public class BotService(TelegramBotClient bot, IServiceProvider serviceProvider, ILogger<BotService> logger)
+public class BotService(ITelegramBotClient bot, IServiceProvider serviceProvider, ILogger<BotService> logger)
 {
     private readonly CancellationTokenSource _cts = new();
 
