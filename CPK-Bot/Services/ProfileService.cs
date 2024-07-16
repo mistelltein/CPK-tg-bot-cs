@@ -7,8 +7,15 @@ using Telegram.Bot.Types;
 
 namespace CPK_Bot.Services;
 
-public class ProfileService(ILogger<ProfileService> logger)
+public class ProfileService
 {
+    private readonly ILogger<ProfileService> _logger;
+
+    public ProfileService(ILogger<ProfileService> logger)
+    {
+        _logger = logger;
+    }
+
     public async Task RegisterUserAsync(User user, string role, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         try
@@ -45,17 +52,18 @@ public class ProfileService(ILogger<ProfileService> logger)
                 {
                     dbContext.Profiles.Update(existingProfile);
                 }
-                
+
                 foreach (var duplicate in existingProfiles.Skip(1))
                 {
                     dbContext.Profiles.Remove(duplicate);
                 }
             }
             await dbContext.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation($"User {user.Username} registered/updated successfully.");
         }
         catch (Exception ex)
         {
-            logger.LogError($"Error processing user {user.Id}: {ex.Message}");
+            _logger.LogError($"Error processing user {user.Id}: {ex.Message}");
         }
     }
 
@@ -68,34 +76,37 @@ public class ProfileService(ILogger<ProfileService> logger)
             {
                 var displayName = !string.IsNullOrEmpty(profile.Username) ? $"@{profile.Username}" : profile.FirstName ?? "NoName";
                 await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя {displayName}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
+                _logger.LogInformation($"Profile of user {displayName} displayed successfully.");
             }
             else
             {
-                logger.LogWarning($"Profile not found for user ID: {userId}");
+                _logger.LogWarning($"Profile not found for user ID: {userId}");
                 await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
             }
         }
         catch (DbUpdateException dbEx)
         {
-            logger.LogError($"Database error: {dbEx.Message}");
+            _logger.LogError($"Database error: {dbEx.Message}");
             await botClient.SendTextMessageAsync(chatId, "Произошла ошибка базы данных. Пожалуйста, повторите попытку позже.", cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
-            logger.LogError($"Error showing profile for user ID: {userId}. Exception: {ex.Message}");
+            _logger.LogError($"Error showing profile for user ID: {userId}. Exception: {ex.Message}");
             await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при попытке отображения профиля.", cancellationToken: cancellationToken);
         }
     }
 
     public async Task ShowProfileByUsernameAsync(ITelegramBotClient botClient, long chatId, string username, BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        var profile = await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
         if (profile != null)
         {
             await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя @{profile.Username}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
+            _logger.LogInformation($"Profile of user @{profile.Username} displayed successfully.");
         }
         else
         {
+            _logger.LogWarning($"Profile not found for username: {username}");
             await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
         }
     }
@@ -134,7 +145,7 @@ public class ProfileService(ILogger<ProfileService> logger)
             username = parts[1].TrimStart('@');
         }
 
-        var profile = await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await FindProfileByUsernameAsync(username!, dbContext, cancellationToken);
         if (profile == null)
         {
             await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
@@ -146,6 +157,7 @@ public class ProfileService(ILogger<ProfileService> logger)
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await botClient.SendTextMessageAsync(chatId, $"Социальный рейтинг пользователя @{profile.Username} теперь {profile.Rating}.", cancellationToken: cancellationToken);
+        _logger.LogInformation($"Rating of user @{profile.Username} updated to {profile.Rating}.");
     }
 
     public async Task HandleSetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
@@ -185,7 +197,7 @@ public class ProfileService(ILogger<ProfileService> logger)
             role = parts[2];
         }
 
-        var profile = await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
         if (profile == null)
         {
             await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
@@ -197,6 +209,7 @@ public class ProfileService(ILogger<ProfileService> logger)
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await botClient.SendTextMessageAsync(chatId, $"Роль пользователя @{profile.Username} теперь {profile.Role}.", cancellationToken: cancellationToken);
+        _logger.LogInformation($"Role of user @{profile.Username} updated to {profile.Role}.");
     }
 
     public async Task HandleBanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
@@ -225,7 +238,7 @@ public class ProfileService(ILogger<ProfileService> logger)
             username = parts[1].TrimStart('@');
         }
 
-        var profile = await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
         if (profile == null)
         {
             await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
@@ -234,28 +247,33 @@ public class ProfileService(ILogger<ProfileService> logger)
 
         await botClient.BanChatMemberAsync(chatId, profile.Id, cancellationToken: cancellationToken);
         await botClient.SendTextMessageAsync(chatId, $"Пользователь @{profile.Username} был забанен.", cancellationToken: cancellationToken);
+        _logger.LogInformation($"User @{profile.Username} was banned.");
     }
 
     public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, CancellationToken cancellationToken, BotDbContext dbContext)
     {
-        foreach (var newMember in message.NewChatMembers!)
-        {
-            if (newMember.Id == botClient.BotId) continue;
-            await RegisterUserAsync(newMember, "Member", dbContext, cancellationToken);
-            await botClient.SendTextMessageAsync(
-                chatId,
-                $"Добро пожаловать, {newMember.Username}!\nМожете, пожалуйста, представиться?\nЕсли есть интересующие вас вопросы, не стесняйтесь их задавать",
-                replyToMessageId: message.MessageId,
-                cancellationToken: cancellationToken
-            );
-        }
+        var tasks = message.NewChatMembers!
+            .Where(newMember => newMember.Id != botClient.BotId)
+            .Select(async newMember =>
+            {
+                await RegisterUserAsync(newMember, "Member", dbContext, cancellationToken);
+                await botClient.SendTextMessageAsync(
+                    chatId,
+                    $"Добро пожаловать, {newMember.Username}!\nМожете, пожалуйста, представиться?\nЕсли есть интересующие вас вопросы, не стесняйтесь их задавать",
+                    replyToMessageId: message.MessageId,
+                    cancellationToken: cancellationToken
+                );
+            }).ToList();
+
         try
         {
+            await Task.WhenAll(tasks);
             await dbContext.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("New members welcomed successfully.");
         }
         catch (DbUpdateException ex)
         {
-            Console.WriteLine($"Error saving changes: {ex.Message}");
+            _logger.LogError($"Error saving changes: {ex.Message}");
         }
     }
 
@@ -270,6 +288,7 @@ public class ProfileService(ILogger<ProfileService> logger)
                 replyToMessageId: message.MessageId,
                 cancellationToken: cancellationToken
             );
+            _logger.LogInformation($"User {leftMember.Username} left the chat.");
         }
     }
 
@@ -282,7 +301,7 @@ public class ProfileService(ILogger<ProfileService> logger)
             .SelectMany(g => g.Skip(1))
             .ToList();
 
-        Console.WriteLine($"Found {duplicates.Count} duplicate profiles");
+        _logger.LogInformation($"Found {duplicates.Count} duplicate profiles");
 
         foreach (var duplicate in duplicates)
         {
@@ -298,5 +317,11 @@ public class ProfileService(ILogger<ProfileService> logger)
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Duplicate profiles cleaned up successfully.");
+    }
+
+    private async Task<Profile?> FindProfileByUsernameAsync(string username, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        return await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
     }
 }
