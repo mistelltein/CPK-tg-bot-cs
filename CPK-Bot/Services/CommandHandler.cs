@@ -115,7 +115,7 @@ public class CommandHandler(IServiceProvider serviceProvider)
                 }
                 else if (message.Text!.StartsWith("/ban"))
                 {
-                    await profileService.HandleBanCommandAsync(botClient, dbContext, message, chatId, cancellationToken);
+                    await profileService.HandleBanCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
                 }
                 break;
         }

@@ -3,7 +3,6 @@ using CPK_Bot.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 
 namespace CPK_Bot.Services;
@@ -14,7 +13,9 @@ public class ProfileService(ILogger<ProfileService> logger)
     {
         try
         {
-            var existingProfile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == user.Id, cancellationToken);
+            var existingProfiles = await dbContext.Profiles.Where(p => p.Id == user.Id).ToListAsync(cancellationToken);
+            var existingProfile = existingProfiles.FirstOrDefault();
+
             if (existingProfile == null)
             {
                 var profile = new Profile
@@ -44,6 +45,11 @@ public class ProfileService(ILogger<ProfileService> logger)
                 {
                     dbContext.Profiles.Update(existingProfile);
                 }
+                
+                foreach (var duplicate in existingProfiles.Skip(1))
+                {
+                    dbContext.Profiles.Remove(duplicate);
+                }
             }
             await dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -61,23 +67,23 @@ public class ProfileService(ILogger<ProfileService> logger)
             if (profile != null)
             {
                 var displayName = !string.IsNullOrEmpty(profile.Username) ? $"@{profile.Username}" : profile.FirstName ?? "NoName";
-                await SendMessageIfNotBlockedAsync(botClient, chatId, $"Профиль пользователя {displayName}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя {displayName}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
             }
             else
             {
                 logger.LogWarning($"Profile not found for user ID: {userId}");
-                await SendMessageIfNotBlockedAsync(botClient, chatId, "Профиль не найден.", cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
             }
         }
         catch (DbUpdateException dbEx)
         {
             logger.LogError($"Database error: {dbEx.Message}");
-            await SendMessageIfNotBlockedAsync(botClient, chatId, "Произошла ошибка базы данных. Пожалуйста, повторите попытку позже.", cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка базы данных. Пожалуйста, повторите попытку позже.", cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogError($"Error showing profile for user ID: {userId}. Exception: {ex.Message}");
-            await SendMessageIfNotBlockedAsync(botClient, chatId, "Произошла ошибка при попытке отображения профиля.", cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при попытке отображения профиля.", cancellationToken: cancellationToken);
         }
     }
 
@@ -86,11 +92,11 @@ public class ProfileService(ILogger<ProfileService> logger)
         var profile = await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
         if (profile != null)
         {
-            await SendMessageIfNotBlockedAsync(botClient, chatId, $"Профиль пользователя @{profile.Username}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя @{profile.Username}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
         }
         else
         {
-            await SendMessageIfNotBlockedAsync(botClient, chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
         }
     }
 
@@ -98,21 +104,21 @@ public class ProfileService(ILogger<ProfileService> logger)
     {
         if (message.From?.Username != "arrogganz")
         {
-            await SendMessageIfNotBlockedAsync(botClient, chatId, "У вас нет разрешения на изменение рейтинга.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на изменение рейтинга.", cancellationToken: cancellationToken);
             return;
         }
 
-        string username;
+        string? username;
         int score;
 
         if (message.ReplyToMessage != null)
         {
-            username = message.ReplyToMessage.From!.Username!;
+            username = message.ReplyToMessage.From!.Username;
             var parts = message.Text!.Split(' ');
 
             if (parts.Length != 2 || !int.TryParse(parts[1], out score))
             {
-                await SendMessageIfNotBlockedAsync(botClient, chatId, "Неверный формат команды. Используйте: /rate [score]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /rate [score]", cancellationToken: cancellationToken);
                 return;
             }
         }
@@ -121,16 +127,17 @@ public class ProfileService(ILogger<ProfileService> logger)
             var parts = message.Text!.Split(' ');
             if (parts.Length != 3 || string.IsNullOrEmpty(parts[1]) || !int.TryParse(parts[2], out score))
             {
-                await SendMessageIfNotBlockedAsync(botClient, chatId, "Неверный формат команды. Используйте: /rate @username [score] или ответьте на сообщение пользователя командой /rate [score]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /rate [username] [score] или ответьте на сообщение пользователя командой /rate [score]", cancellationToken: cancellationToken);
                 return;
             }
+
             username = parts[1].TrimStart('@');
         }
 
-        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
         if (profile == null)
         {
-            await SendMessageIfNotBlockedAsync(botClient, chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -138,14 +145,14 @@ public class ProfileService(ILogger<ProfileService> logger)
         dbContext.Profiles.Update(profile);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await SendMessageIfNotBlockedAsync(botClient, chatId, $"Социальный рейтинг пользователя @{profile.Username} теперь {profile.Rating}.", cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"Социальный рейтинг пользователя @{profile.Username} теперь {profile.Rating}.", cancellationToken: cancellationToken);
     }
 
     public async Task HandleSetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
         {
-            await SendMessageIfNotBlockedAsync(botClient, chatId, "У вас нет разрешения на изменение ролей.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на изменение ролей.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -159,7 +166,7 @@ public class ProfileService(ILogger<ProfileService> logger)
 
             if (parts.Length != 2)
             {
-                await SendMessageIfNotBlockedAsync(botClient, chatId, "Неверный формат команды. Используйте: /setrole [role]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /setrole [role]", cancellationToken: cancellationToken);
                 return;
             }
 
@@ -170,7 +177,7 @@ public class ProfileService(ILogger<ProfileService> logger)
             var parts = message.Text!.Split(' ');
             if (parts.Length != 3 || string.IsNullOrEmpty(parts[1]))
             {
-                await SendMessageIfNotBlockedAsync(botClient, chatId, "Неверный формат команды. Используйте: /setrole @username [role] или ответьте на сообщение пользователя командой /setrole [role]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /setrole [username] [role] или ответьте на сообщение пользователя командой /setrole [role]", cancellationToken: cancellationToken);
                 return;
             }
 
@@ -178,10 +185,10 @@ public class ProfileService(ILogger<ProfileService> logger)
             role = parts[2];
         }
 
-        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
         if (profile == null)
         {
-            await SendMessageIfNotBlockedAsync(botClient, chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -189,14 +196,14 @@ public class ProfileService(ILogger<ProfileService> logger)
         dbContext.Profiles.Update(profile);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await SendMessageIfNotBlockedAsync(botClient, chatId, $"Роль пользователя @{profile.Username} теперь {profile.Role}.", cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"Роль пользователя @{profile.Username} теперь {profile.Role}.", cancellationToken: cancellationToken);
     }
 
-    public async Task HandleBanCommandAsync(ITelegramBotClient botClient, BotDbContext dbContext, Message message, long chatId, CancellationToken cancellationToken)
+    public async Task HandleBanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
         {
-            await SendMessageIfNotBlockedAsync(botClient, chatId, "У вас нет разрешения на бан пользователей.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на бан пользователей.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -211,21 +218,22 @@ public class ProfileService(ILogger<ProfileService> logger)
             var parts = message.Text!.Split(' ');
             if (parts.Length != 2 || string.IsNullOrEmpty(parts[1]))
             {
-                await SendMessageIfNotBlockedAsync(botClient, chatId, "Неверный формат команды. Используйте: /ban @username или ответьте на сообщение пользователя командой /ban", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /ban [username] или ответьте на сообщение пользователя командой /ban", cancellationToken: cancellationToken);
                 return;
             }
+
             username = parts[1].TrimStart('@');
         }
 
-        var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Username == username, cancellationToken);
+        var profile = await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
         if (profile == null)
         {
-            await SendMessageIfNotBlockedAsync(botClient, chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
             return;
         }
 
         await botClient.BanChatMemberAsync(chatId, profile.Id, cancellationToken: cancellationToken);
-        await SendMessageIfNotBlockedAsync(botClient, chatId, $"Пользователь @{profile.Username} был забанен.", cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"Пользователь @{profile.Username} был забанен.", cancellationToken: cancellationToken);
     }
 
     public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, CancellationToken cancellationToken, BotDbContext dbContext)
@@ -233,12 +241,12 @@ public class ProfileService(ILogger<ProfileService> logger)
         foreach (var newMember in message.NewChatMembers!)
         {
             if (newMember.Id == botClient.BotId) continue;
-            await RegisterUserAsync(newMember, "Newbie-Developer", dbContext, cancellationToken);
-            await SendMessageIfNotBlockedAsync(
-                botClient,
+            await RegisterUserAsync(newMember, "Member", dbContext, cancellationToken);
+            await botClient.SendTextMessageAsync(
                 chatId,
                 $"Добро пожаловать, {newMember.Username}!\nМожете, пожалуйста, представиться?\nЕсли есть интересующие вас вопросы, не стесняйтесь их задавать",
-                cancellationToken
+                replyToMessageId: message.MessageId,
+                cancellationToken: cancellationToken
             );
         }
         try
@@ -256,11 +264,11 @@ public class ProfileService(ILogger<ProfileService> logger)
         var leftMember = message.LeftChatMember!;
         if (leftMember.Id != botClient.BotId)
         {
-            await SendMessageIfNotBlockedAsync(
-                botClient,
+            await botClient.SendTextMessageAsync(
                 chatId,
                 $"{leftMember.Username} покинул(а) чат. Надеемся, что он/она скоро вернется!",
-                cancellationToken
+                replyToMessageId: message.MessageId,
+                cancellationToken: cancellationToken
             );
         }
     }
@@ -283,31 +291,12 @@ public class ProfileService(ILogger<ProfileService> logger)
                 .OrderBy(p => p.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (mainProfile != null)
-            {
-                mainProfile.Rating += duplicate.Rating;
-                dbContext.Profiles.Remove(duplicate);
-                dbContext.Profiles.Update(mainProfile);
-            }
+            if (mainProfile == null) continue;
+            mainProfile.Rating += duplicate.Rating;
+            dbContext.Profiles.Remove(duplicate);
+            dbContext.Profiles.Update(mainProfile);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
-
-    private async Task SendMessageIfNotBlockedAsync(ITelegramBotClient botClient, long chatId, string text, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await botClient.SendTextMessageAsync(chatId, text, cancellationToken: cancellationToken);
-        }
-        catch (ApiRequestException ex) when (ex.ErrorCode == 403)
-        {
-            logger.LogWarning($"Bot was blocked by the user with chatId: {chatId}");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError($"An error occurred while sending message to chatId: {chatId}. Exception: {ex.Message}");
-        }
-    }
-
 }
