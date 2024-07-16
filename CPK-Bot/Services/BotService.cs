@@ -6,7 +6,7 @@ using Telegram.Bot.Polling;
 
 namespace CPK_Bot.Services;
 
-public class BotService(ITelegramBotClient bot, IServiceProvider serviceProvider, ILogger<BotService> logger)
+public class BotService(TelegramBotClient bot, IServiceProvider serviceProvider, ILogger<BotService> logger)
 {
     private readonly CancellationTokenSource _cts = new();
 
