@@ -39,7 +39,7 @@ public class CommandHandler
         catch (DbUpdateException ex)
         {
             _logger.LogError($"Error saving changes: {ex.Message}");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при сохранении изменений.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while saving changes.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -51,10 +51,10 @@ public class CommandHandler
         switch (message.Chat.Type)
         {
             case ChatType.Private when message.Text!.Equals("бот", StringComparison.CurrentCultureIgnoreCase):
-                await botClient.SendTextMessageAsync(chatId, "Привет! Как я могу помочь тебе?", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Hi! How can I help you?", cancellationToken: cancellationToken);
                 break;
             case ChatType.Supergroup when message.Text!.Equals("бот", StringComparison.CurrentCultureIgnoreCase):
-                await botClient.SendTextMessageAsync(chatId, "Чем я могу вам помочь?", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "How can I assist you?", cancellationToken: cancellationToken);
                 break;
         }
 
@@ -75,11 +75,13 @@ public class CommandHandler
                 case "/start":
                     await botClient.SendTextMessageAsync(
                         chatId,
-                        "Привет, вот мои команды:\n" +
+                        "Hi, here are my commands:\n" +
                         "/profile\n" +
                         "/givebackendquestion\n" +
                         "/givefrontendquestion\n" +
-                        "/finduser @username\n",
+                        "/finduser @username\n" +
+                        "/weather [place]\n" +
+                        "/findrole [role]",
                         cancellationToken: cancellationToken
                     );
                     break;
@@ -137,7 +139,7 @@ public class CommandHandler
         catch (Exception ex)
         {
             _logger.LogError($"Error handling command {command}: {ex.Message}");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при обработке команды.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while processing the command.", cancellationToken: cancellationToken);
         }
     }
 
@@ -168,7 +170,7 @@ public class CommandHandler
         }
         else
         {
-            await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /finduser @username", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /finduser @username", cancellationToken: cancellationToken);
             _logger.LogWarning("Invalid format for /finduser command.");
         }
     }

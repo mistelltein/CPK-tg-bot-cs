@@ -75,24 +75,24 @@ public class ProfileService
             if (profile != null)
             {
                 var displayName = !string.IsNullOrEmpty(profile.Username) ? $"@{profile.Username}" : profile.FirstName ?? "NoName";
-                await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя {displayName}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, $"User profile {displayName}:\nSocial rating: {profile.Rating}\nUser role: {profile.Role}", cancellationToken: cancellationToken);
                 _logger.LogInformation($"Profile of user {displayName} displayed successfully.");
             }
             else
             {
                 _logger.LogWarning($"Profile not found for user ID: {userId}");
-                await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
             }
         }
         catch (DbUpdateException dbEx)
         {
             _logger.LogError($"Database error: {dbEx.Message}");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка базы данных. Пожалуйста, повторите попытку позже.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "A database error occurred. Please try again later.", cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error showing profile for user ID: {userId}. Exception: {ex.Message}");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при попытке отображения профиля.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while attempting to display the profile.", cancellationToken: cancellationToken);
         }
     }
 
@@ -101,13 +101,13 @@ public class ProfileService
         var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
         if (profile != null)
         {
-            await botClient.SendTextMessageAsync(chatId, $"Профиль пользователя @{profile.Username}:\nСоциальный рейтинг: {profile.Rating}\nРоль пользователя: {profile.Role}", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, $"User profile @{profile.Username}:\nSocial rating: {profile.Rating}\nUser role: {profile.Role}", cancellationToken: cancellationToken);
             _logger.LogInformation($"Profile of user @{profile.Username} displayed successfully.");
         }
         else
         {
             _logger.LogWarning($"Profile not found for username: {username}");
-            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
         }
     }
 
@@ -115,7 +115,7 @@ public class ProfileService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на изменение рейтинга.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to change the rating.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -129,7 +129,7 @@ public class ProfileService
 
             if (parts.Length != 2 || !int.TryParse(parts[1], out score))
             {
-                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /rate [score]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /rate [score]", cancellationToken: cancellationToken);
                 return;
             }
         }
@@ -138,7 +138,7 @@ public class ProfileService
             var parts = message.Text!.Split(' ');
             if (parts.Length != 3 || string.IsNullOrEmpty(parts[1]) || !int.TryParse(parts[2], out score))
             {
-                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /rate [username] [score] или ответьте на сообщение пользователя командой /rate [score]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /rate [username] [score] or reply to the user's message with the command /rate [score]", cancellationToken: cancellationToken);
                 return;
             }
 
@@ -148,7 +148,7 @@ public class ProfileService
         var profile = await FindProfileByUsernameAsync(username!, dbContext, cancellationToken);
         if (profile == null)
         {
-            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -156,7 +156,7 @@ public class ProfileService
         dbContext.Profiles.Update(profile);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await botClient.SendTextMessageAsync(chatId, $"Социальный рейтинг пользователя @{profile.Username} теперь {profile.Rating}.", cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"Social rating of user @{profile.Username} is now {profile.Rating}.", cancellationToken: cancellationToken);
         _logger.LogInformation($"Rating of user @{profile.Username} updated to {profile.Rating}.");
     }
 
@@ -164,7 +164,7 @@ public class ProfileService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на изменение ролей.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to change roles.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -178,7 +178,7 @@ public class ProfileService
 
             if (parts.Length != 2)
             {
-                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /setrole [role]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /setrole [role]", cancellationToken: cancellationToken);
                 return;
             }
 
@@ -189,7 +189,7 @@ public class ProfileService
             var parts = message.Text!.Split(' ');
             if (parts.Length != 3 || string.IsNullOrEmpty(parts[1]))
             {
-                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /setrole [username] [role] или ответьте на сообщение пользователя командой /setrole [role]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /setrole [username] [role] or reply to the user's message with the command /setrole [role]", cancellationToken: cancellationToken);
                 return;
             }
 
@@ -200,7 +200,7 @@ public class ProfileService
         var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
         if (profile == null)
         {
-            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -208,7 +208,7 @@ public class ProfileService
         dbContext.Profiles.Update(profile);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await botClient.SendTextMessageAsync(chatId, $"Роль пользователя @{profile.Username} теперь {profile.Role}.", cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"Role of user @{profile.Username} is now {profile.Role}.", cancellationToken: cancellationToken);
         _logger.LogInformation($"Role of user @{profile.Username} updated to {profile.Role}.");
     }
 
@@ -216,7 +216,7 @@ public class ProfileService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на бан пользователей.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to ban users.", cancellationToken: cancellationToken);
             return;
         }
 
@@ -231,7 +231,7 @@ public class ProfileService
             var parts = message.Text!.Split(' ');
             if (parts.Length != 2 || string.IsNullOrEmpty(parts[1]))
             {
-                await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /ban [username] или ответьте на сообщение пользователя командой /ban", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /ban [username] or reply to the user's message with the command /ban", cancellationToken: cancellationToken);
                 return;
             }
 
@@ -241,12 +241,12 @@ public class ProfileService
         var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
         if (profile == null)
         {
-            await botClient.SendTextMessageAsync(chatId, "Профиль не найден.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
             return;
         }
 
         await botClient.BanChatMemberAsync(chatId, profile.Id, cancellationToken: cancellationToken);
-        await botClient.SendTextMessageAsync(chatId, $"Пользователь @{profile.Username} был забанен.", cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"User @{profile.Username} has been banned.", cancellationToken: cancellationToken);
         _logger.LogInformation($"User @{profile.Username} was banned.");
     }
 
@@ -259,7 +259,7 @@ public class ProfileService
                 await RegisterUserAsync(newMember, "Newbie-Developer", dbContext, cancellationToken);
                 await botClient.SendTextMessageAsync(
                     chatId,
-                    $"Добро пожаловать, {newMember.Username}!\nМожете, пожалуйста, представиться?\nЕсли есть интересующие вас вопросы, не стесняйтесь их задавать",
+                    $"Welcome, {newMember.Username}!\nCan you please introduce yourself?\nIf you have any questions, feel free to ask.",
                     replyToMessageId: message.MessageId,
                     cancellationToken: cancellationToken
                 );
@@ -284,7 +284,7 @@ public class ProfileService
         {
             await botClient.SendTextMessageAsync(
                 chatId,
-                $"{leftMember.Username} покинул(а) чат. Надеемся, что он/она скоро вернется!",
+                $"{leftMember.Username} left the chat. We hope they return soon!",
                 replyToMessageId: message.MessageId,
                 cancellationToken: cancellationToken
             );

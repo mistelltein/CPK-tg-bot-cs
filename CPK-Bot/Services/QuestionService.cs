@@ -20,14 +20,14 @@ public class QuestionService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на добавление вопросов.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to add questions.", cancellationToken: cancellationToken);
             return;
         }
 
         var parts = messageText.Split('|');
         if (parts.Length != 3)
         {
-            await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /addbackendquestion | [вопрос] | [ответ]", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /addbackendquestion | [question] | [answer]", cancellationToken: cancellationToken);
             return;
         }
 
@@ -42,13 +42,13 @@ public class QuestionService
             dbContext.BackendQuestions.Add(question);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            await botClient.SendTextMessageAsync(chatId, "Вопрос и ответ успешно добавлены.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Question and answer added successfully.", cancellationToken: cancellationToken);
             _logger.LogInformation("Backend question added successfully.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding backend question.");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при добавлении вопроса.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while adding the question.", cancellationToken: cancellationToken);
         }
     }
 
@@ -59,11 +59,11 @@ public class QuestionService
             var questions = await dbContext.BackendQuestions.Select(q => q.Question).ToListAsync(cancellationToken);
             if (!questions.Any())
             {
-                await botClient.SendTextMessageAsync(chatId, "Вопросы не найдены.", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "No questions found.", cancellationToken: cancellationToken);
                 return;
             }
 
-            var questionList = string.Join("\n- ", questions.Prepend("Список вопросов:"));
+            var questionList = string.Join("\n- ", questions.Prepend("List of questions:"));
             var formattedMessage = $"*{questionList}*";
 
             await botClient.SendTextMessageAsync(
@@ -77,7 +77,7 @@ public class QuestionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error listing backend questions.");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при получении списка вопросов.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the list of questions.", cancellationToken: cancellationToken);
         }
     }
 
@@ -89,20 +89,20 @@ public class QuestionService
             var questionsCount = await dbContext.BackendQuestions.CountAsync(cancellationToken);
             if (questionsCount == 0)
             {
-                await botClient.SendTextMessageAsync(chatId, "Вопросы не найдены.", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "No questions found.", cancellationToken: cancellationToken);
                 return;
             }
 
             var randomIndex = random.Next(questionsCount);
             var question = await dbContext.BackendQuestions.Skip(randomIndex).FirstAsync(cancellationToken);
 
-            await botClient.SendTextMessageAsync(chatId, $"Вопрос: {question.Question}\nОтвет: {question.Answer}", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, $"Question: {question.Question}\nAnswer: {question.Answer}", cancellationToken: cancellationToken);
             _logger.LogInformation("Provided backend question successfully.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error providing backend question.");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при получении вопроса.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the question.", cancellationToken: cancellationToken);
         }
     }
 
@@ -110,14 +110,14 @@ public class QuestionService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "У вас нет разрешения на добавление вопросов.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to add questions.", cancellationToken: cancellationToken);
             return;
         }
 
         var parts = messageText.Split('|');
         if (parts.Length != 3)
         {
-            await botClient.SendTextMessageAsync(chatId, "Неверный формат команды. Используйте: /addfrontendquestion | [вопрос] | [ответ]", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /addfrontendquestion | [question] | [answer]", cancellationToken: cancellationToken);
             return;
         }
 
@@ -132,13 +132,13 @@ public class QuestionService
             dbContext.FrontendQuestions.Add(question);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            await botClient.SendTextMessageAsync(chatId, "Вопрос и ответ успешно добавлены.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Question and answer added successfully.", cancellationToken: cancellationToken);
             _logger.LogInformation("Frontend question added successfully.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding frontend question.");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при добавлении вопроса.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while adding the question.", cancellationToken: cancellationToken);
         }
     }
 
@@ -149,11 +149,11 @@ public class QuestionService
             var questions = await dbContext.FrontendQuestions.Select(q => q.Question).ToListAsync(cancellationToken);
             if (questions.Count == 0)
             {
-                await botClient.SendTextMessageAsync(chatId, "Вопросы не найдены.", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "No questions found.", cancellationToken: cancellationToken);
                 return;
             }
 
-            var questionList = string.Join("\n- ", questions.Prepend("Список вопросов:"));
+            var questionList = string.Join("\n- ", questions.Prepend("List of questions:"));
             var formattedMessage = $"*{questionList}*";
 
             await botClient.SendTextMessageAsync(
@@ -167,7 +167,7 @@ public class QuestionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error listing frontend questions.");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при получении списка вопросов.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the list of questions.", cancellationToken: cancellationToken);
         }
     }
 
@@ -179,20 +179,20 @@ public class QuestionService
             var questionsCount = await dbContext.FrontendQuestions.CountAsync(cancellationToken);
             if (questionsCount == 0)
             {
-                await botClient.SendTextMessageAsync(chatId, "Вопросы не найдены.", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "No questions found.", cancellationToken: cancellationToken);
                 return;
             }
 
             var randomIndex = random.Next(questionsCount);
             var question = await dbContext.FrontendQuestions.Skip(randomIndex).FirstAsync(cancellationToken);
 
-            await botClient.SendTextMessageAsync(chatId, $"Вопрос: {question.Question}\nОтвет: {question.Answer}", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, $"Question: {question.Question}\nAnswer: {question.Answer}", cancellationToken: cancellationToken);
             _logger.LogInformation("Provided frontend question successfully.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error providing frontend question.");
-            await botClient.SendTextMessageAsync(chatId, "Произошла ошибка при получении вопроса.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the question.", cancellationToken: cancellationToken);
         }
     }
 }
