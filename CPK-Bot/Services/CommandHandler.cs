@@ -12,11 +12,13 @@ public class CommandHandler
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<CommandHandler> _logger;
+    private readonly WeatherService _weatherService;
 
-    public CommandHandler(IServiceProvider serviceProvider, ILogger<CommandHandler> logger)
+    public CommandHandler(IServiceProvider serviceProvider, ILogger<CommandHandler> logger, WeatherService weatherService)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _weatherService = weatherService;
     }
 
     public async Task HandleTextMessageAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
@@ -26,7 +28,7 @@ public class CommandHandler
 
         if (message.From != null)
         {
-            await profileService.RegisterUserAsync(message.From, "Member", dbContext, cancellationToken);
+            await profileService.RegisterUserAsync(message.From, "Newbie-Developer", dbContext, cancellationToken);
         }
 
         try
@@ -112,13 +114,21 @@ public class CommandHandler
                     break;
 
                 case "/cleanup":
-                    await HandleCleanupCommandAsync(botClient, chatId, dbContext, profileService, cancellationToken);
+                    await HandleCleanupCommandAsync(botClient, chatId, cancellationToken);
                     break;
 
                 case var cmd when cmd.StartsWith("/finduser"):
                     await HandleFindUserCommandAsync(botClient, chatId, message.Text, profileService, dbContext, cancellationToken);
                     break;
-
+                
+                case var cmd when cmd.StartsWith("/weather"):
+                    await HandleWeatherCommandAsync(botClient, chatId, cmd, cancellationToken);
+                    break;
+                
+                case var cmd when cmd.StartsWith("/findrole"):
+                    await HandleFindRoleCommandAsync(botClient, chatId, cmd, profileService, dbContext, cancellationToken);
+                    break;
+                
                 default:
                     await HandleCustomCommandAsync(botClient, message, chatId, dbContext, profileService, cancellationToken);
                     break;
@@ -131,7 +141,7 @@ public class CommandHandler
         }
     }
 
-    private async Task HandleCleanupCommandAsync(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, ProfileService profileService, CancellationToken cancellationToken)
+    private async Task HandleCleanupCommandAsync(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
         await botClient.SendTextMessageAsync(chatId, "Starting cleanup...", cancellationToken: cancellationToken);
 
@@ -195,6 +205,58 @@ public class CommandHandler
             case MessageType.ChatMemberLeft when message.LeftChatMember is not null:
                 await profileService.FarewellMemberAsync(botClient, message, chatId, cancellationToken);
                 break;
+        }
+    }
+    
+    private async Task HandleWeatherCommandAsync(ITelegramBotClient botClient, long chatId, string cmd, CancellationToken cancellationToken)
+    {
+        var location = cmd.Split(' ').Skip(1).FirstOrDefault();
+        if (string.IsNullOrEmpty(location))
+        {
+            await botClient.SendTextMessageAsync(chatId, "Please provide a location. Example: /weather London", cancellationToken: cancellationToken);
+        }
+        else
+        {
+            try
+            {
+                var weatherInfo = await _weatherService.GetWeatherAsync(location);
+                await botClient.SendTextMessageAsync(chatId, weatherInfo, cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching weather data: {ex.Message}");
+                await botClient.SendTextMessageAsync(chatId, "Failed to fetch weather data. Please try again later.", cancellationToken: cancellationToken);
+            }
+        }
+    }
+
+    private async Task HandleFindRoleCommandAsync(ITelegramBotClient botClient, long chatId, string cmd, ProfileService profileService, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var role = cmd.Split(' ').Skip(1).FirstOrDefault();
+        if (string.IsNullOrEmpty(role))
+        {
+            await botClient.SendTextMessageAsync(chatId, "Please provide a role. Example: /findrole Python-Developer", cancellationToken: cancellationToken);
+        }
+        else
+        {
+            try
+            {
+                var profiles = await profileService.GetProfilesByRoleAsync(role, dbContext, cancellationToken);
+                if (profiles.Count != 0)
+                {
+                    var response = string.Join("\n", profiles.Select(p => $"@{p.Username} - {p.FirstName}"));
+                    await botClient.SendTextMessageAsync(chatId, $"Found the following users with role {role}:\n{response}", cancellationToken: cancellationToken);
+                }
+                else
+                {
+                    await botClient.SendTextMessageAsync(chatId, $"No users found with role {role}.", cancellationToken: cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching profiles by role: {ex.Message}");
+                await botClient.SendTextMessageAsync(chatId, "Failed to fetch profiles by role. Please try again later.", cancellationToken: cancellationToken);
+            }
         }
     }
 }

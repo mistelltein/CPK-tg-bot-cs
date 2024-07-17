@@ -32,6 +32,8 @@ internal static class Program
                 services.AddTransient<CommandHandler>(); 
                 services.AddTransient<ProfileService>(); 
                 services.AddTransient<QuestionService>();
+                
+                services.AddHttpClient<WeatherService>();
             })
             .Build();
         

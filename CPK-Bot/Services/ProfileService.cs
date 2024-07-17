@@ -256,7 +256,7 @@ public class ProfileService
             .Where(newMember => newMember.Id != botClient.BotId)
             .Select(async newMember =>
             {
-                await RegisterUserAsync(newMember, "Member", dbContext, cancellationToken);
+                await RegisterUserAsync(newMember, "Newbie-Developer", dbContext, cancellationToken);
                 await botClient.SendTextMessageAsync(
                     chatId,
                     $"Добро пожаловать, {newMember.Username}!\nМожете, пожалуйста, представиться?\nЕсли есть интересующие вас вопросы, не стесняйтесь их задавать",
@@ -323,5 +323,13 @@ public class ProfileService
     private async Task<Profile?> FindProfileByUsernameAsync(string username, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         return await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
+    }
+    
+    public async Task<List<Profile>> GetProfilesByRoleAsync(string role, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var normalizedRole = role.ToLower(); 
+        return await dbContext.Profiles
+            .Where(p => p.Role!.ToLower() == normalizedRole) 
+            .ToListAsync(cancellationToken);
     }
 }
