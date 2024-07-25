@@ -1,3 +1,4 @@
+using CPK_Bot.Helpers;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 
@@ -27,14 +28,17 @@ public class WeatherService
         }
 
         var forecastDays = data["forecast"]!["forecastday"];
-        var weatherInfo = $"Weather forecast for {locationName}:\n";
+        var weatherInfo = $"Weather forecast for {locationName}:\n\n";
 
         foreach (var day in forecastDays!)
         {
-            var date = day["date"]!.ToString();
-            var temp = day["day"]!["avgtemp_c"]!.ToString();
+            var date = DateTime.Parse(day["date"]!.ToString()).ToString("yyyy-MM-dd");
+            var minTemp = day["day"]!["mintemp_c"]!.ToString();
+            var maxTemp = day["day"]!["maxtemp_c"]!.ToString();
+            var avgTemp = day["day"]!["avgtemp_c"]!.ToString();
             var condition = day["day"]!["condition"]!["text"]!.ToString();
-            weatherInfo += $"{date}: {temp}°C, {condition}\n";
+        
+            weatherInfo += $"\n{date}\n  - Max: {maxTemp}°C\n  - Avg: {avgTemp}°C\n  - Min: {minTemp}°C\n  - Condition: {condition}\n";
         }
 
         return weatherInfo;
