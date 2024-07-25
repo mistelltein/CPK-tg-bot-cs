@@ -14,12 +14,14 @@ public class CommandHandler
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<CommandHandler> _logger;
     private readonly WeatherService _weatherService;
+    private readonly QuizService _quizService;
 
-    public CommandHandler(IServiceProvider serviceProvider, ILogger<CommandHandler> logger, WeatherService weatherService)
+    public CommandHandler(IServiceProvider serviceProvider, ILogger<CommandHandler> logger, WeatherService weatherService, QuizService quizService)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _weatherService = weatherService;
+        _quizService = quizService;
     }
 
     public async Task HandleTextMessageAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
@@ -105,7 +107,27 @@ public class CommandHandler
                 case var cmd when cmd.StartsWith("/givefrontendquestion"):
                     await questionService.GiveQuestionAsync<FrontendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
-
+                
+                case var cmd when cmd.StartsWith("/createquiz"):
+                    await _quizService.CreateAndSendQuizAsync(botClient, chatId, message.Text, cancellationToken);
+                    break;
+                
+                case "/cleanup":
+                    await HandleCleanupCommandAsync(botClient, chatId, cancellationToken);
+                    break;
+                
+                case var cmd when cmd.StartsWith("/finduser"):
+                    await HandleFindUserCommandAsync(botClient, chatId, message.Text, profileService, dbContext, cancellationToken);
+                    break;
+                
+                case var cmd when cmd.StartsWith("/weather"):
+                    await HandleWeatherCommandAsync(botClient, chatId, cmd, cancellationToken);
+                    break;
+                
+                case var cmd when cmd.StartsWith("/findrole"):
+                    await HandleFindRoleCommandAsync(botClient, chatId, cmd, profileService, dbContext, cancellationToken);
+                    break;
+                
                 default:
                     await HandleCustomCommandAsync(botClient, message, chatId, dbContext, profileService, cancellationToken);
                     break;
@@ -128,7 +150,8 @@ public class CommandHandler
             "/givefrontendquestion\n" +
             "/finduser @username\n" +
             "/weather [place]\n" +
-            "/findrole [role]",
+            "/findrole [role]\n" + 
+            "/createquiz | <question> | <correct_option_id> | <option1> | <option2> | <option3> | <option4>",
             cancellationToken: cancellationToken
         );
     }
