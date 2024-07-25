@@ -1,4 +1,5 @@
 using CPK_Bot.Data.Context;
+using CPK_Bot.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -73,17 +74,7 @@ public class CommandHandler
             switch (command)
             {
                 case "/start":
-                    await botClient.SendTextMessageAsync(
-                        chatId,
-                        "Hi, here are my commands:\n" +
-                        "/profile\n" +
-                        "/givebackendquestion\n" +
-                        "/givefrontendquestion\n" +
-                        "/finduser @username\n" +
-                        "/weather [place]\n" +
-                        "/findrole [role]",
-                        cancellationToken: cancellationToken
-                    );
+                    await HandleStartCommand(botClient, chatId, cancellationToken);
                     break;
 
                 case "/profile@it_kyrgyzstan_cs_bot":
@@ -92,45 +83,29 @@ public class CommandHandler
                     break;
 
                 case var cmd when cmd.StartsWith("/addbackendquestion"):
-                    await questionService.AddBackendQuestionAsync(botClient, chatId, message.Text, dbContext, cancellationToken, message);
+                    await questionService.AddQuestionAsync<BackendQuestion>(botClient, chatId, message.Text, dbContext, cancellationToken, message);
                     break;
 
                 case var cmd when cmd.StartsWith("/backendquestions"):
-                    await questionService.ListBackendQuestionsAsync(botClient, chatId, dbContext, cancellationToken);
+                    await questionService.ListQuestionsAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
                 case var cmd when cmd.StartsWith("/givebackendquestion"):
-                    await questionService.GiveBackendQuestionAsync(botClient, chatId, dbContext, cancellationToken);
+                    await questionService.GiveQuestionAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
                 case var cmd when cmd.StartsWith("/addfrontendquestion"):
-                    await questionService.AddFrontendQuestionAsync(botClient, chatId, message.Text, dbContext, cancellationToken, message);
+                    await questionService.AddQuestionAsync<FrontendQuestion>(botClient, chatId, message.Text, dbContext, cancellationToken, message);
                     break;
 
                 case var cmd when cmd.StartsWith("/frontendquestions"):
-                    await questionService.ListFrontendQuestionsAsync(botClient, chatId, dbContext, cancellationToken);
+                    await questionService.ListQuestionsAsync<FrontendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
                 case var cmd when cmd.StartsWith("/givefrontendquestion"):
-                    await questionService.GiveFrontendQuestionAsync(botClient, chatId, dbContext, cancellationToken);
+                    await questionService.GiveQuestionAsync<FrontendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
-                case "/cleanup":
-                    await HandleCleanupCommandAsync(botClient, chatId, cancellationToken);
-                    break;
-
-                case var cmd when cmd.StartsWith("/finduser"):
-                    await HandleFindUserCommandAsync(botClient, chatId, message.Text, profileService, dbContext, cancellationToken);
-                    break;
-                
-                case var cmd when cmd.StartsWith("/weather"):
-                    await HandleWeatherCommandAsync(botClient, chatId, cmd, cancellationToken);
-                    break;
-                
-                case var cmd when cmd.StartsWith("/findrole"):
-                    await HandleFindRoleCommandAsync(botClient, chatId, cmd, profileService, dbContext, cancellationToken);
-                    break;
-                
                 default:
                     await HandleCustomCommandAsync(botClient, message, chatId, dbContext, profileService, cancellationToken);
                     break;
@@ -142,6 +117,23 @@ public class CommandHandler
             await botClient.SendTextMessageAsync(chatId, "An error occurred while processing the command.", cancellationToken: cancellationToken);
         }
     }
+
+    private async Task HandleStartCommand(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+    {
+        await botClient.SendTextMessageAsync(
+            chatId,
+            "Hi, here are my commands:\n" +
+            "/profile\n" +
+            "/givebackendquestion\n" +
+            "/givefrontendquestion\n" +
+            "/finduser @username\n" +
+            "/weather [place]\n" +
+            "/findrole [role]",
+            cancellationToken: cancellationToken
+        );
+    }
+
+
 
     private async Task HandleCleanupCommandAsync(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {

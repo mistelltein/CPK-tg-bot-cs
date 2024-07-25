@@ -6,7 +6,6 @@ using CPK_Bot.Services;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 
-
 namespace CPK_Bot;
 
 internal static class Program

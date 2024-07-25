@@ -25,7 +25,8 @@ public class BackendQuestionConfigurations : IEntityTypeConfiguration<BackendQue
     {
         builder.HasKey(bq => bq.QuestionId);
 
-        builder.Property(bq => bq.Question)
+        builder.Property(bq => bq.QuestionText)
+            .HasColumnName("Question") 
             .HasMaxLength(1000)
             .IsRequired(false);
 
@@ -40,8 +41,9 @@ public class FrontendQuestionConfigurations : IEntityTypeConfiguration<FrontendQ
     public void Configure(EntityTypeBuilder<FrontendQuestion> builder)
     {
         builder.HasKey(fq => fq.QuestionId);
-            
-        builder.Property(fq => fq.Question)
+
+        builder.Property(fq => fq.QuestionText)
+            .HasColumnName("Question") 
             .HasMaxLength(1000)
             .IsRequired(false);
 

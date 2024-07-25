@@ -28,8 +28,8 @@ public class ProfileService
                 var profile = new Profile
                 {
                     Id = user.Id,
-                    Username = user.Username,
-                    FirstName = user.FirstName,
+                    Username = user.Username ?? string.Empty,
+                    FirstName = user.FirstName ?? string.Empty,
                     Rating = 30,
                     Role = role
                 };
