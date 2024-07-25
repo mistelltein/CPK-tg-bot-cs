@@ -1,4 +1,5 @@
 using CPK_Bot.Data.Context;
+using CPK_Bot.Helpers;
 using CPK_Bot.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -95,8 +96,18 @@ public class QuestionService
 
             var randomIndex = random.Next(questionsCount);
             var question = await dbContext.Set<T>().Skip(randomIndex).FirstAsync(cancellationToken);
+            
+            var escapedQuestion = TelegramMarkdownHelper.EscapeMarkdownV2(question.QuestionText!);
+            var escapedAnswer = TelegramMarkdownHelper.EscapeMarkdownV2(question.Answer!);
 
-            await botClient.SendTextMessageAsync(chatId, $"Question: {question.QuestionText}\nAnswer: {question.Answer}", cancellationToken: cancellationToken);
+            var messageText = $"*Question:* {escapedQuestion}\n*Answer:* ||{escapedAnswer}||";
+
+            await botClient.SendTextMessageAsync(
+                chatId,
+                messageText,
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
+                cancellationToken: cancellationToken
+            );
             _logger.LogInformation($"Provided {typeof(T).Name} question successfully.");
         }
         catch (Exception ex)
