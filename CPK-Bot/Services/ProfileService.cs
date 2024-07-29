@@ -20,8 +20,7 @@ public class ProfileService
     {
         try
         {
-            var existingProfiles = await dbContext.Profiles.Where(p => p.Id == user.Id).ToListAsync(cancellationToken);
-            var existingProfile = existingProfiles.FirstOrDefault();
+            var existingProfile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == user.Id, cancellationToken);
 
             if (existingProfile == null)
             {
@@ -40,22 +39,17 @@ public class ProfileService
                 var changed = false;
                 if (existingProfile.Username != user.Username)
                 {
-                    existingProfile.Username = user.Username;
+                    existingProfile.Username = user.Username ?? string.Empty;
                     changed = true;
                 }
                 if (existingProfile.FirstName != user.FirstName)
                 {
-                    existingProfile.FirstName = user.FirstName;
+                    existingProfile.FirstName = user.FirstName ?? string.Empty;
                     changed = true;
                 }
                 if (changed)
                 {
                     dbContext.Profiles.Update(existingProfile);
-                }
-
-                foreach (var duplicate in existingProfiles.Skip(1))
-                {
-                    dbContext.Profiles.Remove(duplicate);
                 }
             }
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -119,12 +113,12 @@ public class ProfileService
             return;
         }
 
-        string? username;
+        long userId;
         int score;
 
         if (message.ReplyToMessage != null)
         {
-            username = message.ReplyToMessage.From!.Username;
+            userId = message.ReplyToMessage.From!.Id;
             var parts = message.Text!.Split(' ');
 
             if (parts.Length != 2 || !int.TryParse(parts[1], out score))
@@ -142,22 +136,31 @@ public class ProfileService
                 return;
             }
 
-            username = parts[1].TrimStart('@');
+            var username = parts[1].TrimStart('@');
+            var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
+            if (profile == null)
+            {
+                await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
+                return;
+            }
+
+            userId = profile.Id;
         }
 
-        var profile = await FindProfileByUsernameAsync(username!, dbContext, cancellationToken);
-        if (profile == null)
+        var userProfile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
+        if (userProfile == null)
         {
             await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
             return;
         }
 
-        profile.Rating += score;
-        dbContext.Profiles.Update(profile);
+        userProfile.Rating += score;
+        dbContext.Profiles.Update(userProfile);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await botClient.SendTextMessageAsync(chatId, $"Social rating of user @{profile.Username} is now {profile.Rating}.", cancellationToken: cancellationToken);
-        _logger.LogInformation($"Rating of user @{profile.Username} updated to {profile.Rating}.");
+        var displayName = !string.IsNullOrEmpty(userProfile.Username) ? $"@{userProfile.Username}" : userProfile.FirstName ?? "NoName";
+        await botClient.SendTextMessageAsync(chatId, $"Social rating of user {displayName} is now {userProfile.Rating}.", cancellationToken: cancellationToken);
+        _logger.LogInformation($"Rating of user {displayName} updated to {userProfile.Rating}.");
     }
 
     public async Task HandleSetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
@@ -168,12 +171,12 @@ public class ProfileService
             return;
         }
 
-        string username;
+        long userId;
         string role;
 
         if (message.ReplyToMessage != null)
         {
-            username = message.ReplyToMessage.From!.Username!;
+            userId = message.ReplyToMessage.From!.Id;
             var parts = message.Text!.Split(' ');
 
             if (parts.Length != 2)
@@ -193,23 +196,32 @@ public class ProfileService
                 return;
             }
 
-            username = parts[1].TrimStart('@');
+            var username = parts[1].TrimStart('@');
+            var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
+            if (profile == null)
+            {
+                await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
+                return;
+            }
+
+            userId = profile.Id;
             role = parts[2];
         }
 
-        var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
-        if (profile == null)
+        var userProfile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
+        if (userProfile == null)
         {
             await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
             return;
         }
 
-        profile.Role = role;
-        dbContext.Profiles.Update(profile);
+        userProfile.Role = role;
+        dbContext.Profiles.Update(userProfile);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await botClient.SendTextMessageAsync(chatId, $"Role of user @{profile.Username} is now {profile.Role}.", cancellationToken: cancellationToken);
-        _logger.LogInformation($"Role of user @{profile.Username} updated to {profile.Role}.");
+        var displayName = !string.IsNullOrEmpty(userProfile.Username) ? $"@{userProfile.Username}" : userProfile.FirstName ?? "NoName";
+        await botClient.SendTextMessageAsync(chatId, $"Role of user {displayName} is now {userProfile.Role}.", cancellationToken: cancellationToken);
+        _logger.LogInformation($"Role of user {displayName} updated to {userProfile.Role}.");
     }
 
     public async Task HandleBanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
@@ -220,11 +232,11 @@ public class ProfileService
             return;
         }
 
-        string username;
+        long userId;
 
         if (message.ReplyToMessage != null)
         {
-            username = message.ReplyToMessage.From!.Username!;
+            userId = message.ReplyToMessage.From!.Id;
         }
         else
         {
@@ -235,19 +247,20 @@ public class ProfileService
                 return;
             }
 
-            username = parts[1].TrimStart('@');
+            var username = parts[1].TrimStart('@');
+            var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
+            if (profile == null)
+            {
+                await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
+                return;
+            }
+
+            userId = profile.Id;
         }
 
-        var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
-        if (profile == null)
-        {
-            await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
-            return;
-        }
-
-        await botClient.BanChatMemberAsync(chatId, profile.Id, cancellationToken: cancellationToken);
-        await botClient.SendTextMessageAsync(chatId, $"User @{profile.Username} has been banned.", cancellationToken: cancellationToken);
-        _logger.LogInformation($"User @{profile.Username} was banned.");
+        await botClient.BanChatMemberAsync(chatId, userId, cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"User has been banned.", cancellationToken: cancellationToken);
+        _logger.LogInformation($"User was banned.");
     }
 
     public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, CancellationToken cancellationToken, BotDbContext dbContext)
