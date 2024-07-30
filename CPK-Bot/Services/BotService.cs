@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
-using Telegram.Bot.Types.Enums;
 
 namespace CPK_Bot.Services;
 
@@ -25,7 +24,7 @@ public class BotService
     {
         var receiverOptions = new ReceiverOptions
         {
-            AllowedUpdates = Array.Empty<UpdateType>()
+            AllowedUpdates = []
         };
 
         _bot.StartReceiving(
