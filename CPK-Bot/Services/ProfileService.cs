@@ -27,8 +27,8 @@ public class ProfileService
                 var profile = new Profile
                 {
                     Id = user.Id,
-                    Username = user.Username ?? string.Empty,
-                    FirstName = user.FirstName ?? string.Empty,
+                    Username = user.Username,
+                    FirstName = user.FirstName,
                     Rating = 30,
                     Role = role
                 };
@@ -39,12 +39,12 @@ public class ProfileService
                 var changed = false;
                 if (existingProfile.Username != user.Username)
                 {
-                    existingProfile.Username = user.Username ?? string.Empty;
+                    existingProfile.Username = user.Username;
                     changed = true;
                 }
                 if (existingProfile.FirstName != user.FirstName)
                 {
-                    existingProfile.FirstName = user.FirstName ?? string.Empty;
+                    existingProfile.FirstName = user.FirstName;
                     changed = true;
                 }
                 if (changed)
