@@ -11,27 +11,30 @@ namespace CPK_Bot.Services;
 
 public class CommandHandler
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ProfileService _profileService;
+    private readonly QuestionService _questionService;
     private readonly ILogger<CommandHandler> _logger;
     private readonly WeatherService _weatherService;
     private readonly QuizService _quizService;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public CommandHandler(IServiceProvider serviceProvider, ILogger<CommandHandler> logger, WeatherService weatherService, QuizService quizService)
+    public CommandHandler(ProfileService profileService, QuestionService questionService, ILogger<CommandHandler> logger, 
+        WeatherService weatherService, QuizService quizService, IServiceScopeFactory serviceScopeFactory)
     {
-        _serviceProvider = serviceProvider;
         _logger = logger;
         _weatherService = weatherService;
         _quizService = quizService;
+        _profileService = profileService;
+        _questionService = questionService;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
-    public async Task HandleTextMessageAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    public async Task HandleTextMessageAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        var profileService = _serviceProvider.GetRequiredService<ProfileService>();
-        var questionService = _serviceProvider.GetRequiredService<QuestionService>();
-
         if (message.From != null)
         {
-            await profileService.RegisterUserAsync(message.From, "Newbie-Developer", dbContext, cancellationToken);
+            await _profileService.RegisterUserAsync(message.From, "Newbie-Developer", dbContext, cancellationToken);
         }
 
         try
@@ -63,11 +66,12 @@ public class CommandHandler
 
         if (message.Text != null)
         {
-            await HandleCommandAsync(botClient, message, chatId, dbContext, profileService, questionService, cancellationToken);
+            await HandleCommandAsync(botClient, message, chatId, dbContext, _profileService, _questionService, cancellationToken);
         }
     }
 
-    private async Task HandleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, ProfileService profileService, QuestionService questionService, CancellationToken cancellationToken)
+    private async Task HandleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        BotDbContext dbContext, ProfileService profileService, QuestionService questionService, CancellationToken cancellationToken)
     {
         var command = message.Text!.ToLower();
 
@@ -156,13 +160,11 @@ public class CommandHandler
         );
     }
 
-
-
     private async Task HandleCleanupCommandAsync(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
         await botClient.SendTextMessageAsync(chatId, "Starting cleanup...", cancellationToken: cancellationToken);
 
-        using (var scope = _serviceProvider.CreateScope())
+        using (var scope = _serviceScopeFactory.CreateScope())
         {
             var scopedProfileService = scope.ServiceProvider.GetRequiredService<ProfileService>();
             var scopedDbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
@@ -174,7 +176,8 @@ public class CommandHandler
         _logger.LogInformation("Cleanup command executed successfully.");
     }
 
-    private async Task HandleFindUserCommandAsync(ITelegramBotClient botClient, long chatId, string messageText, ProfileService profileService, BotDbContext dbContext, CancellationToken cancellationToken)
+    private async Task HandleFindUserCommandAsync(ITelegramBotClient botClient, long chatId, string messageText, 
+        ProfileService profileService, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         var parts = messageText.Split(' ');
         if (parts.Length == 2)
@@ -190,7 +193,8 @@ public class CommandHandler
         }
     }
 
-    private async Task HandleCustomCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, ProfileService profileService, CancellationToken cancellationToken)
+    private async Task HandleCustomCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        BotDbContext dbContext, ProfileService profileService, CancellationToken cancellationToken)
     {
         if (message.Text!.StartsWith("/rate"))
         {
@@ -210,17 +214,16 @@ public class CommandHandler
         }
     }
 
-    public async Task HandleMessageTypeAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    public async Task HandleMessageTypeAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        var profileService = _serviceProvider.GetRequiredService<ProfileService>();
-
         switch (message.Type)
         {
             case MessageType.ChatMembersAdded:
-                await profileService.WelcomeNewMembersAsync(botClient, message, chatId, cancellationToken, dbContext);
+                await _profileService.WelcomeNewMembersAsync(botClient, message, chatId, cancellationToken, dbContext);
                 break;
             case MessageType.ChatMemberLeft when message.LeftChatMember is not null:
-                await profileService.FarewellMemberAsync(botClient, message, chatId, cancellationToken);
+                await _profileService.FarewellMemberAsync(botClient, message, chatId, cancellationToken);
                 break;
         }
     }
@@ -247,7 +250,8 @@ public class CommandHandler
         }
     }
 
-    private async Task HandleFindRoleCommandAsync(ITelegramBotClient botClient, long chatId, string cmd, ProfileService profileService, BotDbContext dbContext, CancellationToken cancellationToken)
+    private async Task HandleFindRoleCommandAsync(ITelegramBotClient botClient, long chatId, string cmd, 
+        ProfileService profileService, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         var role = cmd.Split(' ').Skip(1).FirstOrDefault();
         if (string.IsNullOrEmpty(role))
