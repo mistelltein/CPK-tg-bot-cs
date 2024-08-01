@@ -309,7 +309,7 @@ public class ProfileService
     {
         var duplicates = dbContext.Profiles
             .AsEnumerable()
-            .GroupBy(p => p.Username)
+            .GroupBy(p => p.Id)
             .Where(g => g.Count() > 1)
             .SelectMany(g => g.Skip(1))
             .ToList();
@@ -319,7 +319,7 @@ public class ProfileService
         foreach (var duplicate in duplicates)
         {
             var mainProfile = await dbContext.Profiles
-                .Where(p => p.Username == duplicate.Username)
+                .Where(p => p.Id == duplicate.Id)
                 .OrderBy(p => p.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -337,12 +337,12 @@ public class ProfileService
     {
         return await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
     }
-    
+
     public async Task<List<Profile>> GetProfilesByRoleAsync(string role, BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        var normalizedRole = role.ToLower(); 
+        var normalizedRole = role.ToLower();
         return await dbContext.Profiles
-            .Where(p => p.Role!.ToLower() == normalizedRole) 
+            .Where(p => p.Role!.ToLower() == normalizedRole)
             .ToListAsync(cancellationToken);
     }
 }
