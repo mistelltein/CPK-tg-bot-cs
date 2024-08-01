@@ -17,7 +17,8 @@ public class QuestionService
         _logger = logger;
     }
 
-    public async Task AddQuestionAsync<T>(ITelegramBotClient botClient, long chatId, string messageText, BotDbContext dbContext, CancellationToken cancellationToken, Message message) where T : Question, new()
+    public async Task AddQuestionAsync<T>(ITelegramBotClient botClient, long chatId, string messageText, 
+        BotDbContext dbContext, CancellationToken cancellationToken, Message message) where T : Question, new()
     {
         if (message.From?.Username != "arrogganz")
         {
@@ -53,7 +54,8 @@ public class QuestionService
         }
     }
 
-    public async Task ListQuestionsAsync<T>(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, CancellationToken cancellationToken) where T : Question
+    public async Task ListQuestionsAsync<T>(ITelegramBotClient botClient, long chatId, 
+        BotDbContext dbContext, CancellationToken cancellationToken) where T : Question
     {
         try
         {
@@ -82,7 +84,8 @@ public class QuestionService
         }
     }
 
-    public async Task GiveQuestionAsync<T>(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, CancellationToken cancellationToken) where T : Question
+    public async Task GiveQuestionAsync<T>(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, 
+        CancellationToken cancellationToken) where T : Question
     {
         try
         {

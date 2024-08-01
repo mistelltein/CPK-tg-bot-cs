@@ -61,7 +61,8 @@ public class ProfileService
         }
     }
 
-    public async Task ShowProfileAsync(ITelegramBotClient botClient, long chatId, long userId, BotDbContext dbContext, CancellationToken cancellationToken)
+    public async Task ShowProfileAsync(ITelegramBotClient botClient, long chatId, long userId, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
         try
         {
@@ -69,7 +70,8 @@ public class ProfileService
             if (profile != null)
             {
                 var displayName = !string.IsNullOrEmpty(profile.Username) ? $"@{profile.Username}" : profile.FirstName ?? "NoName";
-                await botClient.SendTextMessageAsync(chatId, $"User profile {displayName}:\nSocial rating: {profile.Rating}\nUser role: {profile.Role}", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, $"User profile {displayName}:\n" + 
+                                $"Social rating: {profile.Rating}\nUser role: {profile.Role}", cancellationToken: cancellationToken);
                 _logger.LogInformation($"Profile of user {displayName} displayed successfully.");
             }
             else
@@ -90,12 +92,14 @@ public class ProfileService
         }
     }
 
-    public async Task ShowProfileByUsernameAsync(ITelegramBotClient botClient, long chatId, string username, BotDbContext dbContext, CancellationToken cancellationToken)
+    public async Task ShowProfileByUsernameAsync(ITelegramBotClient botClient, long chatId, string username, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
         var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
         if (profile != null)
         {
-            await botClient.SendTextMessageAsync(chatId, $"User profile @{profile.Username}:\nSocial rating: {profile.Rating}\nUser role: {profile.Role}", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, $"User profile @{profile.Username}:\n" +
+                            $"Social rating: {profile.Rating}\nUser role: {profile.Role}", cancellationToken: cancellationToken);
             _logger.LogInformation($"Profile of user @{profile.Username} displayed successfully.");
         }
         else
@@ -105,7 +109,8 @@ public class ProfileService
         }
     }
 
-    public async Task HandleRateCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    public async Task HandleRateCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
         {
@@ -132,7 +137,8 @@ public class ProfileService
             var parts = message.Text!.Split(' ');
             if (parts.Length != 3 || string.IsNullOrEmpty(parts[1]) || !int.TryParse(parts[2], out score))
             {
-                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /rate [username] [score] or reply to the user's message with the command /rate [score]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /rate [username] [score] " +
+                                "or reply to the user's message with the command /rate [score]", cancellationToken: cancellationToken);
                 return;
             }
 
@@ -163,7 +169,8 @@ public class ProfileService
         _logger.LogInformation($"Rating of user {displayName} updated to {userProfile.Rating}.");
     }
 
-    public async Task HandleSetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    public async Task HandleSetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
         {
@@ -192,7 +199,8 @@ public class ProfileService
             var parts = message.Text!.Split(' ');
             if (parts.Length != 3 || string.IsNullOrEmpty(parts[1]))
             {
-                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /setrole [username] [role] or reply to the user's message with the command /setrole [role]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /setrole [username] [role] " +
+                                "or reply to the user's message with the command /setrole [role]", cancellationToken: cancellationToken);
                 return;
             }
 
@@ -224,7 +232,8 @@ public class ProfileService
         _logger.LogInformation($"Role of user {displayName} updated to {userProfile.Role}.");
     }
 
-    public async Task HandleBanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    public async Task HandleBanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
         {
@@ -243,7 +252,8 @@ public class ProfileService
             var parts = message.Text!.Split(' ');
             if (parts.Length != 2 || string.IsNullOrEmpty(parts[1]))
             {
-                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /ban [username] or reply to the user's message with the command /ban", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /ban [username] " +
+                                "or reply to the user's message with the command /ban", cancellationToken: cancellationToken);
                 return;
             }
 
@@ -263,7 +273,8 @@ public class ProfileService
         _logger.LogInformation($"User was banned.");
     }
 
-    public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, CancellationToken cancellationToken, BotDbContext dbContext)
+    public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        CancellationToken cancellationToken, BotDbContext dbContext)
     {
         var tasks = message.NewChatMembers!
             .Where(newMember => newMember.Id != botClient.BotId)
