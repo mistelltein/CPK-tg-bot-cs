@@ -353,7 +353,7 @@ public class ProfileService
     {
         var normalizedRole = role.ToLower();
         return await dbContext.Profiles
-            .Where(p => p.Role!.ToLower() == normalizedRole)
+            .Where(p => p.Role != null && p.Role.ToLower().Contains(normalizedRole))
             .ToListAsync(cancellationToken);
     }
 }
