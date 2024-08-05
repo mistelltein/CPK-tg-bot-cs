@@ -82,6 +82,10 @@ public class CommandHandler
                 case "/start":
                     await HandleStartCommand(botClient, chatId, cancellationToken);
                     break;
+                
+                case "/commands":
+                    await HandleCommandsCommand(botClient, chatId, cancellationToken);
+                    break;
 
                 case "/profile@it_kyrgyzstan_cs_bot":
                 case "/profile":
@@ -146,20 +150,25 @@ public class CommandHandler
 
     private async Task HandleStartCommand(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
-        await botClient.SendTextMessageAsync(
-            chatId,
-            "Hi, here are my commands:\n" +
-            "/profile\n" +
-            "/givebackendquestion\n" +
-            "/givefrontendquestion\n" +
-            "/finduser @username\n" +
-            "/weather [place]\n" +
-            "/findrole [role]\n" + 
-            "/createquiz | <question> | <correct_option_id> | <option1> | <option2> | <option3> | <option4>",
-            cancellationToken: cancellationToken
-        );
+        await HandleCommandsCommand(botClient, chatId, cancellationToken);
     }
+    
+    private async Task HandleCommandsCommand(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+    {
+        var commandsList = "Hi, here are my commands:\n" +
+                           "/start - Start interacting with the bot\n" +
+                           "/profile - Show your profile\n" +
+                           "/givebackendquestion - Get a backend question\n" +
+                           "/givefrontendquestion - Get a frontend question\n" +
+                           "/finduser @username - Find a user by username\n" +
+                           "/weather [place] - Get weather for a location\n" +
+                           "/findrole [role] - Find users by role\n" +
+                           "/createquiz | <question> | <correct_option_id> | <option1> | <option2> | ... - Create a quiz\n" +
+                           "/commands - Show all commands\n";
 
+        await botClient.SendTextMessageAsync(chatId, commandsList, cancellationToken: cancellationToken);
+    }
+    
     private async Task HandleCleanupCommandAsync(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
         await botClient.SendTextMessageAsync(chatId, "Starting cleanup...", cancellationToken: cancellationToken);
