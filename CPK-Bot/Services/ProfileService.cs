@@ -272,7 +272,48 @@ public class ProfileService
         await botClient.SendTextMessageAsync(chatId, $"User has been banned.", cancellationToken: cancellationToken);
         _logger.LogInformation($"User was banned.");
     }
+    
+    public async Task HandleUnbanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        if (message.From?.Username != "arrogganz")
+        {
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to unban users.", cancellationToken: cancellationToken);
+            return;
+        }
 
+        long userId;
+
+        if (message.ReplyToMessage != null)
+        {
+            userId = message.ReplyToMessage.From!.Id;
+        }
+        else
+        {
+            var parts = message.Text!.Split(' ');
+            if (parts.Length != 2 || string.IsNullOrEmpty(parts[1]))
+            {
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /unban [username] " +
+                                                             "or reply to the user's message with the command /unban", cancellationToken: cancellationToken);
+                return;
+            }
+
+            var username = parts[1].TrimStart('@');
+            var profile = await FindProfileByUsernameAsync(username, dbContext, cancellationToken);
+            if (profile == null)
+            {
+                await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
+                return;
+            }
+
+            userId = profile.Id;
+        }
+
+        await botClient.UnbanChatMemberAsync(chatId, userId, cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"User has been unbanned.", cancellationToken: cancellationToken);
+        _logger.LogInformation($"User {userId} was unbanned.");
+    }
+    
     public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, 
         CancellationToken cancellationToken, BotDbContext dbContext)
     {
@@ -343,7 +384,7 @@ public class ProfileService
         await dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Duplicate profiles cleaned up successfully.");
     }
-
+    
     private async Task<Profile?> FindProfileByUsernameAsync(string username, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         return await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);

@@ -83,6 +83,7 @@ public class CommandHandler
                     await HandleStartCommand(botClient, chatId, cancellationToken);
                     break;
                 
+                case "/commands@it_kyrgyzstan_cs_bot":
                 case "/commands":
                     await HandleCommandsCommand(botClient, chatId, cancellationToken);
                     break;
@@ -216,6 +217,10 @@ public class CommandHandler
         else if (message.Text!.StartsWith("/ban"))
         {
             await profileService.HandleBanCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
+        }
+        else if (message.Text!.StartsWith("/unban"))
+        {
+            await profileService.HandleUnbanCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
         }
         else
         {
