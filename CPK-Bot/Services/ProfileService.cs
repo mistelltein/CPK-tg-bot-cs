@@ -385,16 +385,27 @@ public class ProfileService
         _logger.LogInformation("Duplicate profiles cleaned up successfully.");
     }
     
-    private async Task<Profile?> FindProfileByUsernameAsync(string username, BotDbContext dbContext, CancellationToken cancellationToken)
-    {
-        return await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
-    }
-
     public async Task<List<Profile>> GetProfilesByRoleAsync(string role, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         var normalizedRole = role.ToLower();
         return await dbContext.Profiles
             .Where(p => p.Role != null && p.Role.ToLower().Contains(normalizedRole))
             .ToListAsync(cancellationToken);
+    }
+    
+    public async Task<List<string?>> GetAllRolesAsync(BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var roles = await dbContext.Profiles
+            .Where(p => p.Role != null)
+            .Select(p => p.Role)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        return roles;
+    }
+    
+    private async Task<Profile?> FindProfileByUsernameAsync(string username, BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        return await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
     }
 }

@@ -1,7 +1,6 @@
 using CPK_Bot.Data.Context;
 using CPK_Bot.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -71,7 +70,7 @@ public class CommandHandler
     private async Task HandleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
         BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        var command = message.Text!.ToLower();
+        var command = message.Text!.ToLower().ToLower();
 
         try
         {
@@ -143,6 +142,10 @@ public class CommandHandler
                 
                 case var cmd when cmd.StartsWith("/findrole"):
                     await HandleFindRoleCommandAsync(botClient, chatId, cmd, dbContext, cancellationToken);
+                    break;
+                
+                case var cmd when cmd.StartsWith("/showallroles"):
+                    await HandleAllRolesCommandAsync(botClient, chatId, dbContext, cancellationToken);
                     break;
                 
                 case "/cleanup":
@@ -263,6 +266,36 @@ public class CommandHandler
             case MessageType.ChatMemberLeft when message.LeftChatMember is not null:
                 await _profileService.FarewellMemberAsync(botClient, message, chatId, cancellationToken);
                 break;
+        }
+    }
+    
+    private async Task HandleAllRolesCommandAsync(ITelegramBotClient botClient, long chatId, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var roles = await _profileService.GetAllRolesAsync(dbContext, cancellationToken);
+            if (roles.Any())
+            {
+                var rolesList = string.Join("\n- ", roles.Prepend("Available roles:"));
+                var formattedMessage = $"*{rolesList}*";
+
+                await botClient.SendTextMessageAsync(
+                    chatId,
+                    formattedMessage,
+                    parseMode: ParseMode.Markdown,
+                    cancellationToken: cancellationToken
+                );
+            }
+            else
+            {
+                await botClient.SendTextMessageAsync(chatId, "No roles found.", cancellationToken: cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error fetching roles: {ex.Message}");
+            await botClient.SendTextMessageAsync(chatId, "Failed to fetch roles. Please try again later.", cancellationToken: cancellationToken);
         }
     }
     
