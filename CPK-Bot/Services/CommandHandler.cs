@@ -150,7 +150,7 @@ public class CommandHandler
                     break;
                 
                 case "/cleanup":
-                    await HandleCleanupCommandAsync(botClient, chatId, cancellationToken);
+                    await HandleCleanupCommandAsync(botClient, chatId, dbContext, cancellationToken);
                     break;
                 
                 default:
@@ -270,18 +270,11 @@ public class CommandHandler
         }
     }
     
-    private async Task HandleCleanupCommandAsync(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+    private async Task HandleCleanupCommandAsync(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
     {
         await botClient.SendTextMessageAsync(chatId, "Starting cleanup...", cancellationToken: cancellationToken);
 
-        using (var scope = _serviceScopeFactory.CreateScope())
-        {
-            var scopedProfileService = scope.ServiceProvider.GetRequiredService<ProfileService>();
-            var scopedDbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
-
-            await scopedProfileService.CleanUpDuplicateProfilesAsync(scopedDbContext, cancellationToken);
-        }
-
+        await _profileService.CleanUpDuplicateProfilesAsync(dbContext, cancellationToken);
         await botClient.SendTextMessageAsync(chatId, "Cleanup completed.", cancellationToken: cancellationToken);
         _logger.LogInformation("Cleanup command executed successfully.");
     }
