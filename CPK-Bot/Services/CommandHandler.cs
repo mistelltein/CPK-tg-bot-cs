@@ -16,17 +16,15 @@ public class CommandHandler
     private readonly ILogger<CommandHandler> _logger;
     private readonly WeatherService _weatherService;
     private readonly QuizService _quizService;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public CommandHandler(ProfileService profileService, QuestionService questionService, ILogger<CommandHandler> logger, 
-        WeatherService weatherService, QuizService quizService, IServiceScopeFactory serviceScopeFactory)
+        WeatherService weatherService, QuizService quizService)
     {
         _logger = logger;
         _weatherService = weatherService;
         _quizService = quizService;
         _profileService = profileService;
         _questionService = questionService;
-        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task HandleTextMessageAsync(ITelegramBotClient botClient, Message message, long chatId, 
@@ -79,17 +77,15 @@ public class CommandHandler
         {
             switch (command)
             {
-                case "/start":
+                case var cmd when cmd.StartsWith("/start"):
                     await HandleStartCommand(botClient, chatId, cancellationToken);
                     break;
                 
-                case "/commands@it_kyrgyzstan_cs_bot":
-                case "/commands":
+                case var cmd when cmd.StartsWith("/commands"):
                     await HandleCommandsCommand(botClient, chatId, cancellationToken);
                     break;
-
-                case "/profile@it_kyrgyzstan_cs_bot":
-                case "/profile":
+                
+                case var cmd when cmd.StartsWith("/profile"):
                     await _profileService.ShowProfileAsync(botClient, chatId, message.From!.Id, dbContext, cancellationToken);
                     break;
 
