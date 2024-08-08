@@ -66,12 +66,12 @@ public class CommandHandler
 
         if (message.Text != null)
         {
-            await HandleCommandAsync(botClient, message, chatId, dbContext, _profileService, _questionService, cancellationToken);
+            await HandleCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
         }
     }
 
     private async Task HandleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
-        BotDbContext dbContext, ProfileService profileService, QuestionService questionService, CancellationToken cancellationToken)
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
         var command = message.Text!.ToLower();
 
@@ -90,43 +90,55 @@ public class CommandHandler
 
                 case "/profile@it_kyrgyzstan_cs_bot":
                 case "/profile":
-                    await profileService.ShowProfileAsync(botClient, chatId, message.From!.Id, dbContext, cancellationToken);
+                    await _profileService.ShowProfileAsync(botClient, chatId, message.From!.Id, dbContext, cancellationToken);
                     break;
 
                 case var cmd when cmd.StartsWith("/addbackendquestion"):
-                    await questionService.AddQuestionAsync<BackendQuestion>(botClient, chatId, message.Text, dbContext, cancellationToken, message);
+                    await _questionService.AddQuestionAsync<BackendQuestion>(botClient, chatId, message.Text, dbContext, cancellationToken, message);
                     break;
 
                 case var cmd when cmd.StartsWith("/backendquestions"):
-                    await questionService.ListQuestionsAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
+                    await _questionService.ListQuestionsAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
                 case var cmd when cmd.StartsWith("/givebackendquestion"):
-                    await questionService.GiveQuestionAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
+                    await _questionService.GiveQuestionAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
                 case var cmd when cmd.StartsWith("/addfrontendquestion"):
-                    await questionService.AddQuestionAsync<FrontendQuestion>(botClient, chatId, message.Text, dbContext, cancellationToken, message);
+                    await _questionService.AddQuestionAsync<FrontendQuestion>(botClient, chatId, message.Text, dbContext, cancellationToken, message);
                     break;
 
                 case var cmd when cmd.StartsWith("/frontendquestions"):
-                    await questionService.ListQuestionsAsync<FrontendQuestion>(botClient, chatId, dbContext, cancellationToken);
+                    await _questionService.ListQuestionsAsync<FrontendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
                 case var cmd when cmd.StartsWith("/givefrontendquestion"):
-                    await questionService.GiveQuestionAsync<FrontendQuestion>(botClient, chatId, dbContext, cancellationToken);
+                    await _questionService.GiveQuestionAsync<FrontendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
                 
                 case var cmd when cmd.StartsWith("/createquiz"):
                     await _quizService.CreateAndSendQuizAsync(botClient, chatId, message.Text, cancellationToken);
                     break;
                 
-                case "/cleanup":
-                    await HandleCleanupCommandAsync(botClient, chatId, cancellationToken);
+                case var cmd when cmd.StartsWith("/rate"):
+                    await _profileService.RateCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
+                    break;
+                
+                case var cmd when cmd.StartsWith("/setrole"):
+                    await _profileService.SetRoleCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
+                    break;
+                
+                case var cmd when cmd.StartsWith("/ban"):
+                    await _profileService.BanCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
+                    break;
+                
+                case var cmd when cmd.StartsWith("/unban"):
+                    await _profileService.UnbanCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
                     break;
                 
                 case var cmd when cmd.StartsWith("/finduser"):
-                    await HandleFindUserCommandAsync(botClient, chatId, message.Text, profileService, dbContext, cancellationToken);
+                    await HandleFindUserCommandAsync(botClient, chatId, message.Text, dbContext, cancellationToken);
                     break;
                 
                 case var cmd when cmd.StartsWith("/weather"):
@@ -134,11 +146,15 @@ public class CommandHandler
                     break;
                 
                 case var cmd when cmd.StartsWith("/findrole"):
-                    await HandleFindRoleCommandAsync(botClient, chatId, cmd, profileService, dbContext, cancellationToken);
+                    await HandleFindRoleCommandAsync(botClient, chatId, cmd, dbContext, cancellationToken);
+                    break;
+                
+                case "/cleanup":
+                    await HandleCleanupCommandAsync(botClient, chatId, cancellationToken);
                     break;
                 
                 default:
-                    await HandleCustomCommandAsync(botClient, message, chatId, dbContext, profileService, cancellationToken);
+                    HandleOtherCommands(message);
                     break;
             }
         }
@@ -169,76 +185,21 @@ public class CommandHandler
 
         await botClient.SendTextMessageAsync(chatId, commandsList, cancellationToken: cancellationToken);
     }
-    
-    private async Task HandleCleanupCommandAsync(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
-    {
-        await botClient.SendTextMessageAsync(chatId, "Starting cleanup...", cancellationToken: cancellationToken);
-
-        using (var scope = _serviceScopeFactory.CreateScope())
-        {
-            var scopedProfileService = scope.ServiceProvider.GetRequiredService<ProfileService>();
-            var scopedDbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
-
-            await scopedProfileService.CleanUpDuplicateProfilesAsync(scopedDbContext, cancellationToken);
-        }
-
-        await botClient.SendTextMessageAsync(chatId, "Cleanup completed.", cancellationToken: cancellationToken);
-        _logger.LogInformation("Cleanup command executed successfully.");
-    }
 
     private async Task HandleFindUserCommandAsync(ITelegramBotClient botClient, long chatId, string messageText, 
-        ProfileService profileService, BotDbContext dbContext, CancellationToken cancellationToken)
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
         var parts = messageText.Split(' ');
         if (parts.Length == 2)
         {
             var username = parts[1].TrimStart('@');
-            await profileService.ShowProfileByUsernameAsync(botClient, chatId, username, dbContext, cancellationToken);
+            await _profileService.ShowProfileByUsernameAsync(botClient, chatId, username, dbContext, cancellationToken);
             _logger.LogInformation($"Profile of user {username} displayed successfully.");
         }
         else
         {
             await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /finduser @username", cancellationToken: cancellationToken);
             _logger.LogWarning("Invalid format for /finduser command.");
-        }
-    }
-
-    private async Task HandleCustomCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
-        BotDbContext dbContext, ProfileService profileService, CancellationToken cancellationToken)
-    {
-        if (message.Text!.StartsWith("/rate"))
-        {
-            await profileService.HandleRateCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
-        }
-        else if (message.Text!.StartsWith("/setrole"))
-        {
-            await profileService.HandleSetRoleCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
-        }
-        else if (message.Text!.StartsWith("/ban"))
-        {
-            await profileService.HandleBanCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
-        }
-        else if (message.Text!.StartsWith("/unban"))
-        {
-            await profileService.HandleUnbanCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
-        }
-        else
-        {
-            _logger.LogWarning($"Unknown command received: {message.Text}");
-        }
-    }
-
-    public async Task HandleMessageTypeAsync(ITelegramBotClient botClient, Message message, long chatId, 
-        BotDbContext dbContext, CancellationToken cancellationToken)
-    {
-        switch (message.Type)
-        {
-            case MessageType.ChatMembersAdded:
-                await _profileService.WelcomeNewMembersAsync(botClient, message, chatId, cancellationToken, dbContext);
-                break;
-            case MessageType.ChatMemberLeft when message.LeftChatMember is not null:
-                await _profileService.FarewellMemberAsync(botClient, message, chatId, cancellationToken);
-                break;
         }
     }
     
@@ -265,7 +226,7 @@ public class CommandHandler
     }
 
     private async Task HandleFindRoleCommandAsync(ITelegramBotClient botClient, long chatId, string cmd, 
-        ProfileService profileService, BotDbContext dbContext, CancellationToken cancellationToken)
+        BotDbContext dbContext, CancellationToken cancellationToken)
     {
         var role = cmd.Split(' ').Skip(1).FirstOrDefault();
         if (string.IsNullOrEmpty(role))
@@ -276,7 +237,7 @@ public class CommandHandler
         {
             try
             {
-                var profiles = await profileService.GetProfilesByRoleAsync(role, dbContext, cancellationToken);
+                var profiles = await _profileService.GetProfilesByRoleAsync(role, dbContext, cancellationToken);
                 if (profiles.Count != 0)
                 {
                     var response = string.Join("\n", profiles.Select(p => $"@{p.Username} - {p.FirstName}"));
@@ -293,5 +254,40 @@ public class CommandHandler
                 await botClient.SendTextMessageAsync(chatId, "Failed to fetch profiles by role. Please try again later.", cancellationToken: cancellationToken);
             }
         }
+    }
+    
+    public async Task HandleMessageTypeAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        BotDbContext dbContext, CancellationToken cancellationToken)
+    {
+        switch (message.Type)
+        {
+            case MessageType.ChatMembersAdded:
+                await _profileService.WelcomeNewMembersAsync(botClient, message, chatId, cancellationToken, dbContext);
+                break;
+            case MessageType.ChatMemberLeft when message.LeftChatMember is not null:
+                await _profileService.FarewellMemberAsync(botClient, message, chatId, cancellationToken);
+                break;
+        }
+    }
+    
+    private async Task HandleCleanupCommandAsync(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
+    {
+        await botClient.SendTextMessageAsync(chatId, "Starting cleanup...", cancellationToken: cancellationToken);
+
+        using (var scope = _serviceScopeFactory.CreateScope())
+        {
+            var scopedProfileService = scope.ServiceProvider.GetRequiredService<ProfileService>();
+            var scopedDbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+            await scopedProfileService.CleanUpDuplicateProfilesAsync(scopedDbContext, cancellationToken);
+        }
+
+        await botClient.SendTextMessageAsync(chatId, "Cleanup completed.", cancellationToken: cancellationToken);
+        _logger.LogInformation("Cleanup command executed successfully.");
+    }
+
+    private void HandleOtherCommands(Message message)
+    {
+        _logger.LogWarning($"Unknown command received: {message.Text}");
     }
 }

@@ -109,7 +109,7 @@ public class ProfileService
         }
     }
 
-    public async Task HandleRateCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+    public async Task RateCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
         BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
@@ -169,7 +169,7 @@ public class ProfileService
         _logger.LogInformation($"Rating of user {displayName} updated to {userProfile.Rating}.");
     }
 
-    public async Task HandleSetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+    public async Task SetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
         BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
@@ -232,7 +232,7 @@ public class ProfileService
         _logger.LogInformation($"Role of user {displayName} updated to {userProfile.Role}.");
     }
 
-    public async Task HandleBanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+    public async Task BanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
         BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
@@ -273,7 +273,7 @@ public class ProfileService
         _logger.LogInformation($"User was banned.");
     }
     
-    public async Task HandleUnbanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
+    public async Task UnbanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
         BotDbContext dbContext, CancellationToken cancellationToken)
     {
         if (message.From?.Username != "arrogganz")
