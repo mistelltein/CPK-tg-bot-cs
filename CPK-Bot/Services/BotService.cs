@@ -48,11 +48,13 @@ public class BotService
     {
         var errorMessage = exception switch
         {
-            ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
-            _ => exception.ToString()
+            ApiRequestException apiRequestException => 
+                $"Telegram API Error: [Error Code: {apiRequestException.ErrorCode}] Message: {apiRequestException.Message}",
+            _ => $"An unexpected error occurred: {exception.Message}"
         };
 
-        _logger.LogError(errorMessage);
+        _logger.LogError("Exception occurred: {ExceptionType}, Error Message: {ErrorMessage}", exception.GetType().Name, errorMessage);
+
         return Task.CompletedTask;
     }
 }

@@ -14,8 +14,8 @@ public class UpdateHandler
 
     public UpdateHandler(IServiceProvider serviceProvider, ILogger<UpdateHandler> logger)
     {
-        this._logger = logger;
-        this._serviceProvider = serviceProvider;
+        _logger = logger;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -44,7 +44,7 @@ public class UpdateHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error handling update");
-            throw; // Re-throw the exception after logging it
+            throw;
         }
 
         _logger.LogInformation("Update processed successfully");

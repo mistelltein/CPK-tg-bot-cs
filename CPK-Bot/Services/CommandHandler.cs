@@ -37,18 +37,18 @@ public class CommandHandler
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation($"User {message.From?.Username} registered/updated successfully.");
+            _logger.LogInformation("User {Username} registered/updated successfully.", message.From?.Username);
         }
         catch (DbUpdateException ex)
         {
-            _logger.LogError($"Error saving changes: {ex.Message}");
+            _logger.LogError("Error saving changes: {ErrorMessage}", ex.Message);
             await botClient.SendTextMessageAsync(chatId, "An error occurred while saving changes.", cancellationToken: cancellationToken);
             return;
         }
 
         if (message.Text != null)
         {
-            _logger.LogInformation($"Received text message: {message.Text}");
+            _logger.LogInformation("Received text message: {MessageText}", message.Text);
         }
 
         switch (message.Chat.Type)
@@ -76,75 +76,75 @@ public class CommandHandler
         {
             switch (command)
             {
-                case var cmd when cmd.StartsWith("/start"):
+                case var _ when command.StartsWith("/start"):
                     await HandleStartCommand(botClient, chatId, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/commands"):
+                case var _ when command.StartsWith("/commands"):
                     await HandleCommandsCommand(botClient, chatId, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/profile"):
+                case var _ when command.StartsWith("/profile"):
                     await _profileService.ShowProfileAsync(botClient, chatId, message.From!.Id, dbContext, cancellationToken);
                     break;
 
-                case var cmd when cmd.StartsWith("/addbackendquestion"):
+                case var _ when command.StartsWith("/addbackendquestion"):
                     await _questionService.AddQuestionAsync<BackendQuestion>(botClient, chatId, message.Text, dbContext, cancellationToken, message);
                     break;
 
-                case var cmd when cmd.StartsWith("/backendquestions"):
+                case var _ when command.StartsWith("/backendquestions"):
                     await _questionService.ListQuestionsAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
-                case var cmd when cmd.StartsWith("/givebackendquestion"):
+                case var _ when command.StartsWith("/givebackendquestion"):
                     await _questionService.GiveQuestionAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
-                case var cmd when cmd.StartsWith("/addfrontendquestion"):
+                case var _ when command.StartsWith("/addfrontendquestion"):
                     await _questionService.AddQuestionAsync<FrontendQuestion>(botClient, chatId, message.Text, dbContext, cancellationToken, message);
                     break;
 
-                case var cmd when cmd.StartsWith("/frontendquestions"):
+                case var _ when command.StartsWith("/frontendquestions"):
                     await _questionService.ListQuestionsAsync<FrontendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
 
-                case var cmd when cmd.StartsWith("/givefrontendquestion"):
+                case var _ when command.StartsWith("/givefrontendquestion"):
                     await _questionService.GiveQuestionAsync<FrontendQuestion>(botClient, chatId, dbContext, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/createquiz"):
+                case var _ when command.StartsWith("/createquiz"):
                     await _quizService.CreateAndSendQuizAsync(botClient, chatId, message.Text, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/rate"):
+                case var _ when command.StartsWith("/rate"):
                     await _profileService.RateCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/setrole"):
+                case var _ when command.StartsWith("/setrole"):
                     await _profileService.SetRoleCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/ban"):
+                case var _ when command.StartsWith("/ban"):
                     await _profileService.BanCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/unban"):
+                case var _ when command.StartsWith("/unban"):
                     await _profileService.UnbanCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/finduser"):
+                case var _ when command.StartsWith("/finduser"):
                     await HandleFindUserCommandAsync(botClient, chatId, message.Text, dbContext, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/weather"):
-                    await HandleWeatherCommandAsync(botClient, chatId, cmd, cancellationToken);
+                case var _ when command.StartsWith("/weather"):
+                    await HandleWeatherCommandAsync(botClient, chatId, command, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/findrole"):
-                    await HandleFindRoleCommandAsync(botClient, chatId, cmd, dbContext, cancellationToken);
+                case var _ when command.StartsWith("/findrole"):
+                    await HandleFindRoleCommandAsync(botClient, chatId, command, dbContext, cancellationToken);
                     break;
                 
-                case var cmd when cmd.StartsWith("/showallroles"):
+                case var _ when command.StartsWith("/showallroles"):
                     await HandleAllRolesCommandAsync(botClient, chatId, dbContext, cancellationToken);
                     break;
                 
@@ -159,7 +159,7 @@ public class CommandHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error handling command {command}: {ex.Message}");
+            _logger.LogError("Error handling command {Command}: {ErrorMessage}", command, ex.Message);
             await botClient.SendTextMessageAsync(chatId, "An error occurred while processing the command.", cancellationToken: cancellationToken);
         }
     }
@@ -171,16 +171,17 @@ public class CommandHandler
     
     private async Task HandleCommandsCommand(ITelegramBotClient botClient, long chatId, CancellationToken cancellationToken)
     {
-        var commandsList = "Hi, here are my commands:\n" +
-                           "/start - Start interacting with the bot\n" +
-                           "/profile - Show your profile\n" +
-                           "/givebackendquestion - Get a backend question\n" +
-                           "/givefrontendquestion - Get a frontend question\n" +
-                           "/finduser @username - Find a user by username\n" +
-                           "/weather [place] - Get weather for a location\n" +
-                           "/findrole [role] - Find users by role\n" +
-                           "/createquiz | <question> | <correct_option_id> | <option1> | <option2> | ... - Create a quiz\n" +
-                           "/commands - Show all commands\n";
+        const string commandsList = "Hi, here are my commands:\n" +
+                                    "/start - Start interacting with the bot\n" +
+                                    "/profile - Show your profile\n" +
+                                    "/givebackendquestion - Get a backend question\n" +
+                                    "/givefrontendquestion - Get a frontend question\n" +
+                                    "/finduser @username - Find a user by username\n" +
+                                    "/weather [place] - Get weather for a location\n" +
+                                    "/findrole [role] - Find users by role\n" +
+                                    "/createquiz | <question> | <correct_option_id> | <option1> | <option2> | ... - Create a quiz\n" +
+                                    "/showallroles - show available roles" +
+                                    "/commands - Show all commands\n";
 
         await botClient.SendTextMessageAsync(chatId, commandsList, cancellationToken: cancellationToken);
     }
@@ -193,7 +194,7 @@ public class CommandHandler
         {
             var username = parts[1].TrimStart('@');
             await _profileService.ShowProfileByUsernameAsync(botClient, chatId, username, dbContext, cancellationToken);
-            _logger.LogInformation($"Profile of user {username} displayed successfully.");
+            _logger.LogInformation("Profile of user {Username} displayed successfully.", username);
         }
         else
         {
@@ -218,7 +219,7 @@ public class CommandHandler
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error fetching weather data: {ex.Message}");
+                _logger.LogError("Error fetching weather data: {ErrorMessage}", ex.Message);
                 await botClient.SendTextMessageAsync(chatId, "Failed to fetch weather data. Please try again later.", cancellationToken: cancellationToken);
             }
         }
@@ -249,7 +250,7 @@ public class CommandHandler
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error fetching profiles by role: {ex.Message}");
+                _logger.LogError("Error fetching profiles by role: {ErrorMessage}", ex.Message);
                 await botClient.SendTextMessageAsync(chatId, "Failed to fetch profiles by role. Please try again later.", cancellationToken: cancellationToken);
             }
         }
@@ -275,7 +276,7 @@ public class CommandHandler
         try
         {
             var roles = await _profileService.GetAllRolesAsync(dbContext, cancellationToken);
-            if (roles.Any())
+            if (roles.Count != 0)
             {
                 var rolesList = string.Join("\n- ", roles.Prepend("Available roles:"));
                 var formattedMessage = $"*{rolesList}*";
@@ -294,7 +295,7 @@ public class CommandHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error fetching roles: {ex.Message}");
+            _logger.LogError("Error fetching roles: {ErrorMessage}", ex.Message);
             await botClient.SendTextMessageAsync(chatId, "Failed to fetch roles. Please try again later.", cancellationToken: cancellationToken);
         }
     }
@@ -310,6 +311,6 @@ public class CommandHandler
 
     private void HandleOtherCommands(Message message)
     {
-        _logger.LogWarning($"Unknown command received: {message.Text}");
+        _logger.LogWarning("Unknown command received: {Command}", message.Text);
     }
 }

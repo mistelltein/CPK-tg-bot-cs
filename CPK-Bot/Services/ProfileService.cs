@@ -53,11 +53,11 @@ public class ProfileService
                 }
             }
             await dbContext.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation($"User {user.Username} registered/updated successfully.");
+            _logger.LogInformation("User {Username} registered/updated successfully.", user.Username);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error processing user {user.Id}: {ex.Message}");
+            _logger.LogError("Error processing user {UserId}: {ErrorMessage}", user.Id, ex.Message);
         }
     }
 
@@ -72,22 +72,22 @@ public class ProfileService
                 var displayName = !string.IsNullOrEmpty(profile.Username) ? $"@{profile.Username}" : profile.FirstName ?? "NoName";
                 await botClient.SendTextMessageAsync(chatId, $"User profile {displayName}:\n" + 
                                 $"Social rating: {profile.Rating}\nUser role: {profile.Role}", cancellationToken: cancellationToken);
-                _logger.LogInformation($"Profile of user {displayName} displayed successfully.");
+                _logger.LogInformation("Profile of user {DisplayName} displayed successfully.", displayName);
             }
             else
             {
-                _logger.LogWarning($"Profile not found for user ID: {userId}");
+                _logger.LogWarning("Profile not found for user ID: {UserId}", userId);
                 await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
             }
         }
         catch (DbUpdateException dbEx)
         {
-            _logger.LogError($"Database error: {dbEx.Message}");
+            _logger.LogError("Database error: {DatabaseUpdateError}", dbEx.Message);
             await botClient.SendTextMessageAsync(chatId, "A database error occurred. Please try again later.", cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error showing profile for user ID: {userId}. Exception: {ex.Message}");
+            _logger.LogError("Error showing profile for user ID: {UserId}. Exception: {ErrorMessage}", userId, ex.Message);
             await botClient.SendTextMessageAsync(chatId, "An error occurred while attempting to display the profile.", cancellationToken: cancellationToken);
         }
     }
@@ -100,11 +100,11 @@ public class ProfileService
         {
             await botClient.SendTextMessageAsync(chatId, $"User profile @{profile.Username}:\n" +
                             $"Social rating: {profile.Rating}\nUser role: {profile.Role}", cancellationToken: cancellationToken);
-            _logger.LogInformation($"Profile of user @{profile.Username} displayed successfully.");
+            _logger.LogInformation("Profile of user @{Username} displayed successfully.", profile.Username);
         }
         else
         {
-            _logger.LogWarning($"Profile not found for username: {username}");
+            _logger.LogWarning("Profile not found for username: {Username}", username);
             await botClient.SendTextMessageAsync(chatId, "Profile not found.", cancellationToken: cancellationToken);
         }
     }
@@ -166,7 +166,7 @@ public class ProfileService
 
         var displayName = !string.IsNullOrEmpty(userProfile.Username) ? $"@{userProfile.Username}" : userProfile.FirstName ?? "NoName";
         await botClient.SendTextMessageAsync(chatId, $"Social rating of user {displayName} is now {userProfile.Rating}.", cancellationToken: cancellationToken);
-        _logger.LogInformation($"Rating of user {displayName} updated to {userProfile.Rating}.");
+        _logger.LogInformation("Rating of user {DisplayName} updated to {UserRating}.", displayName, userProfile.Rating);
     }
 
     public async Task SetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
@@ -229,7 +229,7 @@ public class ProfileService
 
         var displayName = !string.IsNullOrEmpty(userProfile.Username) ? $"@{userProfile.Username}" : userProfile.FirstName ?? "NoName";
         await botClient.SendTextMessageAsync(chatId, $"Role of user {displayName} is now {userProfile.Role}.", cancellationToken: cancellationToken);
-        _logger.LogInformation($"Role of user {displayName} updated to {userProfile.Role}.");
+        _logger.LogInformation("Role of user {DisplayName} updated to {UserRole}.", displayName, userProfile.Role);
     }
 
     public async Task BanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
@@ -269,8 +269,8 @@ public class ProfileService
         }
 
         await botClient.BanChatMemberAsync(chatId, userId, cancellationToken: cancellationToken);
-        await botClient.SendTextMessageAsync(chatId, $"User has been banned.", cancellationToken: cancellationToken);
-        _logger.LogInformation($"User was banned.");
+        await botClient.SendTextMessageAsync(chatId, "User has been banned.", cancellationToken: cancellationToken);
+        _logger.LogInformation("User was banned.");
     }
     
     public async Task UnbanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
@@ -311,7 +311,7 @@ public class ProfileService
 
         await botClient.UnbanChatMemberAsync(chatId, userId, cancellationToken: cancellationToken);
         await botClient.SendTextMessageAsync(chatId, $"User has been unbanned.", cancellationToken: cancellationToken);
-        _logger.LogInformation($"User {userId} was unbanned.");
+        _logger.LogInformation("User {UserId} was unbanned.", userId);
     }
     
     public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, 
@@ -338,7 +338,7 @@ public class ProfileService
         }
         catch (DbUpdateException ex)
         {
-            _logger.LogError($"Error saving changes: {ex.Message}");
+            _logger.LogError("Error saving changes: {ErrorMessage}", ex.Message);
         }
     }
 
@@ -347,13 +347,17 @@ public class ProfileService
         var leftMember = message.LeftChatMember!;
         if (leftMember.Id != botClient.BotId)
         {
+            var displayName = !string.IsNullOrEmpty(leftMember.Username) 
+                ? $"@{leftMember.Username}" 
+                : leftMember.FirstName;
+            
             await botClient.SendTextMessageAsync(
                 chatId,
                 $"{leftMember.Username} left the chat. We hope they return soon!",
                 replyToMessageId: message.MessageId,
                 cancellationToken: cancellationToken
             );
-            _logger.LogInformation($"User {leftMember.Username} left the chat.");
+            _logger.LogInformation("User {DisplayName} left the chat.", displayName);
         }
     }
 
@@ -366,7 +370,7 @@ public class ProfileService
             .SelectMany(g => g.Skip(1))
             .ToList();
 
-        _logger.LogInformation($"Found {duplicates.Count} duplicate profiles");
+        _logger.LogInformation("Found {DuplicatesCount} duplicate profiles", duplicates.Count);
 
         foreach (var duplicate in duplicates)
         {

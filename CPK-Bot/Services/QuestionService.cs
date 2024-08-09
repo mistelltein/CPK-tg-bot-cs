@@ -22,14 +22,16 @@ public class QuestionService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "You do not have permission to add questions.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to add questions.", 
+                cancellationToken: cancellationToken);
             return;
         }
 
         var parts = messageText.Split('|');
         if (parts.Length != 3)
         {
-            await botClient.SendTextMessageAsync(chatId, $"Invalid command format. Use: /add{typeof(T).Name.ToLower()} | [question] | [answer]", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, $"Invalid command format. Use: /add{typeof(T).Name.ToLower()} | " +
+                                                         $"[question] | [answer]", cancellationToken: cancellationToken);
             return;
         }
 
@@ -45,11 +47,11 @@ public class QuestionService
             await dbContext.SaveChangesAsync(cancellationToken);
 
             await botClient.SendTextMessageAsync(chatId, "Question and answer added successfully.", cancellationToken: cancellationToken);
-            _logger.LogInformation($"{typeof(T).Name} added successfully.");
+            _logger.LogInformation("{Name} added successfully.", typeof(T).Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error adding {typeof(T).Name}.");
+            _logger.LogError(ex, "Error adding {Name}.", typeof(T).Name);
             await botClient.SendTextMessageAsync(chatId, "An error occurred while adding the question.", cancellationToken: cancellationToken);
         }
     }
@@ -60,7 +62,7 @@ public class QuestionService
         try
         {
             var questions = await dbContext.Set<T>().Select(q => q.QuestionText).ToListAsync(cancellationToken);
-            if (!questions.Any())
+            if (questions.Count == 0)
             {
                 await botClient.SendTextMessageAsync(chatId, "No questions found.", cancellationToken: cancellationToken);
                 return;
@@ -75,11 +77,11 @@ public class QuestionService
                 parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
                 cancellationToken: cancellationToken
             );
-            _logger.LogInformation($"Listed {typeof(T).Name} questions successfully.");
+            _logger.LogInformation("Listed {Name} questions successfully.", typeof(T).Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error listing {typeof(T).Name} questions.");
+            _logger.LogError(ex, "Error listing {Name} questions.", typeof(T).Name);
             await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the list of questions.", cancellationToken: cancellationToken);
         }
     }
@@ -111,11 +113,11 @@ public class QuestionService
                 parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
                 cancellationToken: cancellationToken
             );
-            _logger.LogInformation($"Provided {typeof(T).Name} question successfully.");
+            _logger.LogInformation("Provided {Name} question successfully.", typeof(T).Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error providing {typeof(T).Name} question.");
+            _logger.LogError(ex, "Error providing {Name} question.", typeof(T).Name);
             await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the question.", cancellationToken: cancellationToken);
         }
     }
