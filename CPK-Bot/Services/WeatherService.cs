@@ -37,7 +37,11 @@ public class WeatherService
             var avgTemp = day["day"]!["avgtemp_c"]!.ToString();
             var condition = day["day"]!["condition"]!["text"]!.ToString();
         
-            weatherInfo += $"\n{date}\n  - Max: {maxTemp}°C\n  - Avg: {avgTemp}°C\n  - Min: {minTemp}°C\n  - Condition: {condition}\n";
+            weatherInfo += $"\n*{date}*\n" +
+                           $"  - *Max Temp:* `{maxTemp}°C`\n" +
+                           $"  - *Avg Temp:* `{avgTemp}°C`\n" +
+                           $"  - *Min Temp:* `{minTemp}°C`\n" +
+                           $"  - *Condition:* _{condition}_\n";
         }
 
         return weatherInfo;

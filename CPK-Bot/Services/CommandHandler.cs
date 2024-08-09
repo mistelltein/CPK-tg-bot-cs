@@ -215,7 +215,7 @@ public class CommandHandler
             try
             {
                 var weatherInfo = await _weatherService.GetWeatherAsync(location);
-                await botClient.SendTextMessageAsync(chatId, weatherInfo, cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, weatherInfo, parseMode: ParseMode.Markdown, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
