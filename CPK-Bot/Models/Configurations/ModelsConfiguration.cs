@@ -11,10 +11,13 @@ public class ProfileConfigurations : IEntityTypeConfiguration<Profile>
 
         builder.HasIndex(b => b.Username).IsUnique();
         builder.Property(b => b.Username).IsRequired(false);
-
+        
+        builder.HasIndex(b => b.Rating);
         builder.Property(b => b.Rating).IsRequired();
             
+        builder.HasIndex(b => b.Role);
         builder.Property(b => b.Role).IsRequired();
+        
         builder.Property(b => b.FirstName).HasMaxLength(100).IsRequired(false);
     }
 }

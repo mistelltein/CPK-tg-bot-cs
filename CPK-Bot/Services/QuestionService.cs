@@ -16,7 +16,7 @@ public class QuestionService
     {
         _logger = logger;
     }
-
+ 
     public async Task AddQuestionAsync<T>(ITelegramBotClient botClient, long chatId, string messageText, 
         BotDbContext dbContext, CancellationToken cancellationToken, Message message) where T : Question, new()
     {
