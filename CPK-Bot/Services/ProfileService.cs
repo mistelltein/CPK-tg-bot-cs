@@ -69,7 +69,10 @@ public class ProfileService
     {
         try
         {
-            var profile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
+            var profile = await dbContext.Profiles
+                .AsNoTracking()
+                .SingleOrDefaultAsync(p => p.Id == userId, cancellationToken);
+            
             if (profile != null)
             {
                 var displayName = !string.IsNullOrEmpty(profile.Username) ? $"@{profile.Username}" : profile.FirstName ?? "NoName";
@@ -418,6 +421,8 @@ public class ProfileService
     
     private async Task<Profile?> FindProfileByUsernameAsync(string username, BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        return await dbContext.Profiles.FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
+        return await dbContext.Profiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Username == username, cancellationToken);
     }
 }
