@@ -1,5 +1,6 @@
 using CPK_Bot.Data.Context;
 using CPK_Bot.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -224,7 +225,8 @@ public class CommandHandler
             try
             {
                 var profiles = await _profileService.GetProfilesByRoleAsync(role, dbContext, cancellationToken);
-                if (profiles.Count != 0)
+                
+                if (profiles.Count > 0)
                 {
                     var response = string.Join("\n", profiles.Select(p => $"@{p.Username} - {p.FirstName}"));
                     await botClient.SendTextMessageAsync(chatId, $"Found the following users with role {role}:\n{response}", cancellationToken: cancellationToken);
@@ -262,6 +264,7 @@ public class CommandHandler
         try
         {
             var roles = await _profileService.GetAllRolesAsync(dbContext, cancellationToken);
+            
             if (roles.Count != 0)
             {
                 var rolesList = string.Join("\n- ", roles.Prepend("Available roles:"));

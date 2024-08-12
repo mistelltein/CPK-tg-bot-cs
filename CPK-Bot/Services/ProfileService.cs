@@ -396,19 +396,24 @@ public class ProfileService
     {
         var normalizedRole = role.ToLower();
         return await dbContext.Profiles
+            .AsNoTracking()
             .Where(p => p.Role != null && p.Role.ToLower().Contains(normalizedRole))
+            .Select(p => new Profile
+            {
+                Username = p.Username,
+                FirstName = p.FirstName
+            })
             .ToListAsync(cancellationToken);
     }
     
     public async Task<List<string?>> GetAllRolesAsync(BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        var roles = await dbContext.Profiles
+        return await dbContext.Profiles
+            .AsNoTracking()
             .Where(p => p.Role != null)
             .Select(p => p.Role)
             .Distinct()
             .ToListAsync(cancellationToken);
-
-        return roles;
     }
     
     private async Task<Profile?> FindProfileByUsernameAsync(string username, BotDbContext dbContext, CancellationToken cancellationToken)
