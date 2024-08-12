@@ -20,7 +20,8 @@ public class ProfileService
     {
         try
         {
-            var existingProfile = await dbContext.Profiles.SingleOrDefaultAsync(p => p.Id == user.Id, cancellationToken);
+            var existingProfile = await dbContext.Profiles
+                .SingleOrDefaultAsync(p => p.Id == user.Id, cancellationToken);
 
             if (existingProfile == null)
             {
@@ -52,12 +53,14 @@ public class ProfileService
                     dbContext.Profiles.Update(existingProfile);
                 }
             }
+
             await dbContext.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("User {Username} registered/updated successfully.", user.Username);
         }
         catch (Exception ex)
         {
             _logger.LogError("Error processing user {UserId}: {ErrorMessage}", user.Id, ex.Message);
+            throw;
         }
     }
 

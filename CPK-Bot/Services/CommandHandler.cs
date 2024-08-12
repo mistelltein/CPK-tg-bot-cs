@@ -1,6 +1,5 @@
 using CPK_Bot.Data.Context;
 using CPK_Bot.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -33,19 +32,6 @@ public class CommandHandler
         {
             await _profileService.RegisterUserAsync(message.From, "Newbie-Developer", dbContext, cancellationToken);
         }
-
-        try
-        {
-            await dbContext.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("User {Username} registered/updated successfully.", message.From?.Username);
-        }
-        catch (DbUpdateException ex)
-        {
-            _logger.LogError("Error saving changes: {ErrorMessage}", ex.Message);
-            await botClient.SendTextMessageAsync(chatId, "An error occurred while saving changes.", cancellationToken: cancellationToken);
-            return;
-        }
-
         if (message.Text != null)
         {
             _logger.LogInformation("Received text message: {MessageText}", message.Text);
