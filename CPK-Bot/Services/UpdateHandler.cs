@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace CPK_Bot.Services;
 
@@ -24,7 +23,7 @@ public class UpdateHandler
 
         try
         {
-            if (update is { Type: UpdateType.Message, Message: not null })
+            if (update.Message is not null)
             {
                 var message = update.Message;
                 var chatId = message.Chat.Id;
@@ -33,12 +32,7 @@ public class UpdateHandler
                 var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
                 var commandHandler = scope.ServiceProvider.GetRequiredService<CommandHandler>();
 
-                if (message.Text is not null)
-                {
-                    await commandHandler.HandleTextMessageAsync(botClient, message, chatId, dbContext, cancellationToken);
-                }
-
-                await commandHandler.HandleMessageTypeAsync(botClient, message, chatId, dbContext, cancellationToken);
+                await commandHandler.HandleUpdateAsync(botClient, message, chatId, dbContext, cancellationToken);
             }
         }
         catch (Exception ex)
