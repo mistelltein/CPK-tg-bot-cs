@@ -15,7 +15,7 @@ CPK-Bot — это Telegram бот, предназначенный для пом
 
 ### 1. Клонируйте репозиторий:
 
-git clone https://github.com/mistelltein/cpk-bot.git
+git clone https://github.com/mistelltein/CPK-tg-bot-cs.git
 cd cpk-bot
 
 ### 2. Установите необходимые зависимости:
