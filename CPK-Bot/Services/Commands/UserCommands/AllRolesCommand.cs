@@ -9,10 +9,10 @@ namespace CPK_Bot.Services.Commands.UserCommands;
 
 public class AllRolesCommand : ICommand
 {
-    private readonly ProfileService _profileService;
-    private readonly ILogger _logger;
+    private readonly IProfileService _profileService;
+    private readonly ILogger<AllRolesCommand> _logger;
 
-    public AllRolesCommand(ProfileService profileService, ILogger<AllRolesCommand> logger)
+    public AllRolesCommand(IProfileService profileService, ILogger<AllRolesCommand> logger)
     {
         _profileService = profileService;
         _logger = logger;

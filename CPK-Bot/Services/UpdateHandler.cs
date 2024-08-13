@@ -6,7 +6,12 @@ using Telegram.Bot.Types;
 
 namespace CPK_Bot.Services;
 
-public class UpdateHandler
+public interface IUpdateHandler
+{
+    Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken);
+}
+
+public class UpdateHandler : IUpdateHandler
 {
     private readonly ILogger<UpdateHandler> _logger;
     private readonly IServiceProvider _serviceProvider;
@@ -30,7 +35,7 @@ public class UpdateHandler
 
                 using var scope = _serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
-                var commandHandler = scope.ServiceProvider.GetRequiredService<CommandHandler>();
+                var commandHandler = scope.ServiceProvider.GetRequiredService<ICommandHandler>();
 
                 await commandHandler.HandleUpdateAsync(botClient, message, chatId, dbContext, cancellationToken);
             }

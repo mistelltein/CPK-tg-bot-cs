@@ -8,7 +8,19 @@ using Message = Telegram.Bot.Types.Message;
 
 namespace CPK_Bot.Services;
 
-public class QuestionService
+public interface IQuestionService
+{
+    Task AddQuestionAsync<T>(ITelegramBotClient botClient, long chatId, string messageText,
+        BotDbContext dbContext, CancellationToken cancellationToken, Message message) where T : Question, new();
+
+    Task ListQuestionsAsync<T>(ITelegramBotClient botClient, long chatId,
+        BotDbContext dbContext, CancellationToken cancellationToken) where T : Question;
+
+    Task GiveQuestionAsync<T>(ITelegramBotClient botClient, long chatId, BotDbContext dbContext, 
+        CancellationToken cancellationToken) where T : Question;
+}
+
+public class QuestionService : IQuestionService
 {
     private readonly ILogger<QuestionService> _logger;
 

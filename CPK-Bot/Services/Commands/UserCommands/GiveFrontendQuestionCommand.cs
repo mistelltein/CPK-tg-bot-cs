@@ -8,9 +8,9 @@ namespace CPK_Bot.Services.Commands.UserCommands;
 
 public class GiveFrontendQuestionCommand : ICommand
 {
-    private readonly QuestionService _questionService;
+    private readonly IQuestionService _questionService;
 
-    public GiveFrontendQuestionCommand(QuestionService questionService)
+    public GiveFrontendQuestionCommand(IQuestionService questionService)
     {
         _questionService = questionService;
     }

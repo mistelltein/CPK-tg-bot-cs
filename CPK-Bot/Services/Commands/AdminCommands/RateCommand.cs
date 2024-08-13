@@ -7,9 +7,9 @@ namespace CPK_Bot.Services.Commands.AdminCommands;
 
 public class RateCommand : ICommand
 {
-    private readonly ProfileService _profileService;
+    private readonly IProfileService _profileService;
 
-    public RateCommand(ProfileService profileService)
+    public RateCommand(IProfileService profileService)
     {
         _profileService = profileService;
     }

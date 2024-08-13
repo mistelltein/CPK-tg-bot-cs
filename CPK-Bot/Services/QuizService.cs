@@ -4,7 +4,13 @@ using PollType = Telegram.Bot.Types.Enums.PollType;
 
 namespace CPK_Bot.Services;
 
-public class QuizService
+public interface IQuizService
+{
+    Task CreateAndSendQuizAsync(ITelegramBotClient botClient, long chatId, string messageText,
+        CancellationToken cancellationToken);
+}
+
+public class QuizService : IQuizService
 {
     private readonly ILogger<QuizService> _logger;
 

@@ -7,9 +7,9 @@ namespace CPK_Bot.Services.Commands.AdminCommands;
 
 public class UnbanCommand : ICommand
 {
-    private readonly ProfileService _profileService;
+    private readonly IProfileService _profileService;
 
-    public UnbanCommand(ProfileService profileService)
+    public UnbanCommand(IProfileService profileService)
     {
         _profileService = profileService;
     }

@@ -8,10 +8,10 @@ namespace CPK_Bot.Services.Commands.UserCommands;
 
 public class FindUserCommand : ICommand
 {
-    private readonly ProfileService _profileService;
+    private readonly IProfileService _profileService;
     private readonly ILogger<FindUserCommand> _logger;
 
-    public FindUserCommand(ProfileService profileService, ILogger<FindUserCommand> logger)
+    public FindUserCommand(IProfileService profileService, ILogger<FindUserCommand> logger)
     {
         _profileService = profileService;
         _logger = logger;

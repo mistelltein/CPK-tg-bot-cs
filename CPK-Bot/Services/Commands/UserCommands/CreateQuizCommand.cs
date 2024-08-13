@@ -7,9 +7,9 @@ namespace CPK_Bot.Services.Commands.UserCommands;
 
 public class CreateQuizCommand : ICommand
 {
-    private readonly QuizService _quizService;
+    private readonly IQuizService _quizService;
 
-    public CreateQuizCommand(QuizService quizService)
+    public CreateQuizCommand(IQuizService quizService)
     {
         _quizService = quizService;
     }

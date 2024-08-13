@@ -8,9 +8,9 @@ namespace CPK_Bot.Services.Commands.UserCommands;
 
 public class ListBackendQuestionsCommand : ICommand
 {
-    private readonly QuestionService _questionService;
+    private readonly IQuestionService _questionService;
 
-    public ListBackendQuestionsCommand(QuestionService questionService)
+    public ListBackendQuestionsCommand(IQuestionService questionService)
     {
         _questionService = questionService;
     }

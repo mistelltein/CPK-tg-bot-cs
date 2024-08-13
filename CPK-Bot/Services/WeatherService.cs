@@ -3,7 +3,12 @@ using Newtonsoft.Json.Linq;
 
 namespace CPK_Bot.Services;
 
-public class WeatherService
+public interface IWeatherService
+{
+    Task<string> GetWeatherAsync(string location, int days = 3);
+}
+
+public class WeatherService : IWeatherService
 {
     private readonly HttpClient _httpClient;
     private readonly string? _apiKey;

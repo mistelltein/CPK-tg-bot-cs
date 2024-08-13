@@ -7,7 +7,7 @@ namespace CPK_Bot.Services.Commands.CommonCommands;
 
 public class HandleOtherCommand : ICommand
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<HandleOtherCommand> _logger;
 
     public HandleOtherCommand(ILogger<HandleOtherCommand> logger)
     {

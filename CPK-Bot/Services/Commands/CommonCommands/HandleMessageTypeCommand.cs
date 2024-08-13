@@ -7,9 +7,9 @@ namespace CPK_Bot.Services.Commands.CommonCommands;
 
 public class HandleMessageTypeCommand : ICommand
 {
-    private readonly ProfileService _profileService;
+    private readonly IProfileService _profileService;
 
-    public HandleMessageTypeCommand(ProfileService profileService)
+    public HandleMessageTypeCommand(IProfileService profileService)
     {
         _profileService = profileService;
     }

@@ -7,7 +7,43 @@ using Telegram.Bot.Types;
 
 namespace CPK_Bot.Services;
 
-public class ProfileService
+public interface IProfileService
+{
+    Task RegisterUserAsync(User user, string role, BotDbContext dbContext, CancellationToken cancellationToken);
+
+    Task ShowProfileAsync(ITelegramBotClient botClient, long chatId, long userId,
+        BotDbContext dbContext, CancellationToken cancellationToken);
+
+    Task ShowProfileByUsernameAsync(ITelegramBotClient botClient, long chatId, string username,
+        BotDbContext dbContext, CancellationToken cancellationToken);
+
+    Task RateCommandAsync(ITelegramBotClient botClient, Message message, long chatId,
+        BotDbContext dbContext, CancellationToken cancellationToken);
+
+    Task SetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId,
+        BotDbContext dbContext, CancellationToken cancellationToken);
+
+    Task BanCommandAsync(ITelegramBotClient botClient, Message message, long chatId,
+        BotDbContext dbContext, CancellationToken cancellationToken);
+
+    Task UnbanCommandAsync(ITelegramBotClient botClient, Message message, long chatId,
+        BotDbContext dbContext, CancellationToken cancellationToken);
+
+    Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId,
+        CancellationToken cancellationToken, BotDbContext dbContext);
+
+    Task FarewellMemberAsync(ITelegramBotClient botClient, Message message, long chatId,
+        CancellationToken cancellationToken);
+
+    Task CleanUpDuplicateProfilesAsync(BotDbContext dbContext, CancellationToken cancellationToken);
+
+    Task<List<Profile>> GetProfilesByRoleAsync(string role, BotDbContext dbContext,
+        CancellationToken cancellationToken);
+
+    Task<List<string?>> GetAllRolesAsync(BotDbContext dbContext, CancellationToken cancellationToken);
+}
+
+public class ProfileService : IProfileService
 {
     private readonly ILogger<ProfileService> _logger;
 
@@ -348,7 +384,8 @@ public class ProfileService
         }
     }
 
-    public async Task FarewellMemberAsync(ITelegramBotClient botClient, Message message, long chatId, CancellationToken cancellationToken)
+    public async Task FarewellMemberAsync(ITelegramBotClient botClient, Message message, long chatId, 
+        CancellationToken cancellationToken)
     {
         var leftMember = message.LeftChatMember!;
         if (leftMember.Id != botClient.BotId)

@@ -8,10 +8,10 @@ namespace CPK_Bot.Services.Commands.UserCommands;
 
 public class FindRoleCommand : ICommand
 {
-    private readonly ProfileService _profileService;
+    private readonly IProfileService _profileService;
     private readonly ILogger<FindRoleCommand> _logger;
     
-    public FindRoleCommand(ProfileService profileService, ILogger<FindRoleCommand> logger)
+    public FindRoleCommand(IProfileService profileService, ILogger<FindRoleCommand> logger)
     {
         _profileService = profileService;
         _logger = logger;

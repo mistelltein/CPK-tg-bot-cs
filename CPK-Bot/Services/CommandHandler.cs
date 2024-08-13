@@ -6,20 +6,27 @@ using Telegram.Bot.Types;
 
 namespace CPK_Bot.Services;
 
-public class CommandHandler
+public interface ICommandHandler
 {
-    private readonly CommandFactory _commandFactory;
-    private readonly ILogger<CommandHandler> _logger;
-    private readonly ProfileService _profileService;
+    Task HandleUpdateAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+        CancellationToken cancellationToken);
+}
 
-    public CommandHandler(CommandFactory commandFactory, ILogger<CommandHandler> logger, ProfileService profileService)
+public class CommandHandler : ICommandHandler
+{
+    private readonly ICommandFactory _commandFactory;
+    private readonly ILogger<CommandHandler> _logger;
+    private readonly IProfileService _profileService;
+
+    public CommandHandler(ICommandFactory commandFactory, ILogger<CommandHandler> logger, IProfileService profileService)
     {
         _commandFactory = commandFactory;
         _logger = logger;
         _profileService = profileService;
     }
 
-    public async Task HandleUpdateAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, CancellationToken cancellationToken)
+    public async Task HandleUpdateAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, 
+        CancellationToken cancellationToken)
     {
         if (message.From != null)
         {

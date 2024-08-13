@@ -24,7 +24,7 @@ internal static class Program
             .ConfigureServices(ConfigureServices)
             .Build();
         
-        var botService = host.Services.GetRequiredService<BotService>();
+        var botService = host.Services.GetRequiredService<IBotService>();
         botService.Start();
         
         await host.RunAsync();
@@ -38,21 +38,21 @@ internal static class Program
         var token = context.Configuration["TelegramBotApiKey"];
         services.AddSingleton(new TelegramBotClient(token!));
                 
-        services.AddSingleton<BotService>();
-        services.AddHttpClient<WeatherService>();
+        services.AddSingleton<IBotService, BotService>();
+        services.AddHttpClient<IWeatherService, WeatherService>();
                 
-        services.AddTransient<UpdateHandler>(); 
-        services.AddTransient<CommandHandler>(); 
-        services.AddTransient<ProfileService>(); 
-        services.AddTransient<QuestionService>();
-        services.AddTransient<QuizService>();
+        services.AddTransient<IUpdateHandler, UpdateHandler>(); 
+        services.AddTransient<ICommandHandler, CommandHandler>(); 
+        services.AddTransient<IProfileService, ProfileService>(); 
+        services.AddTransient<IQuestionService, QuestionService>();
+        services.AddTransient<IQuizService, QuizService>();
                 
         services.AddTransient<AddBackendQuestionCommand>();
         services.AddTransient<AddFrontendQuestionCommand>();
         services.AddTransient<AllRolesCommand>();
         services.AddTransient<BanCommand>();
         services.AddTransient<CleanupCommand>();
-        services.AddTransient<CommandFactory>();
+        services.AddTransient<ICommandFactory, CommandFactory>();
         services.AddTransient<CreateQuizCommand>();
         services.AddTransient<FindRoleCommand>();
         services.AddTransient<FindUserCommand>();

@@ -7,9 +7,9 @@ namespace CPK_Bot.Services.Commands.AdminCommands;
 
 public class BanCommand : ICommand
 {
-    private readonly ProfileService _profileService;
+    private readonly IProfileService _profileService;
 
-    public BanCommand(ProfileService profileService)
+    public BanCommand(IProfileService profileService)
     {
         _profileService = profileService;
     }

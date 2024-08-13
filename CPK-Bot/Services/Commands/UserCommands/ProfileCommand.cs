@@ -7,9 +7,9 @@ namespace CPK_Bot.Services.Commands.UserCommands;
 
 public class ProfileCommand : ICommand
 {
-    private readonly ProfileService _profileService;
+    private readonly IProfileService _profileService;
 
-    public ProfileCommand(ProfileService profileService)
+    public ProfileCommand(IProfileService profileService)
     {
         _profileService = profileService;
     }

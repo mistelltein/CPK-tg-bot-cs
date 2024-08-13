@@ -8,10 +8,10 @@ namespace CPK_Bot.Services.Commands.AdminCommands;
 
 public class CleanupCommand : ICommand
 {
-    private readonly ProfileService _profileService;
-    private readonly ILogger _logger;
+    private readonly IProfileService _profileService;
+    private readonly ILogger<CleanupCommand> _logger;
 
-    public CleanupCommand(ProfileService profileService, ILogger<CleanupCommand> logger)
+    public CleanupCommand(IProfileService profileService, ILogger<CleanupCommand> logger)
     {
         _profileService = profileService;
         _logger = logger;

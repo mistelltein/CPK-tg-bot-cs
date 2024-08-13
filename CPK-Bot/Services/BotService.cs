@@ -6,7 +6,12 @@ using Telegram.Bot.Polling;
 
 namespace CPK_Bot.Services;
 
-public class BotService
+public interface IBotService
+{
+    void Start();
+}
+
+public class BotService : IBotService
 {
     private readonly TelegramBotClient _bot;
     private readonly IServiceProvider _serviceProvider;
@@ -31,7 +36,7 @@ public class BotService
             async (botClient, update, cancellationToken) =>
             {
                 using var scope = _serviceProvider.CreateScope();
-                var updateHandler = scope.ServiceProvider.GetRequiredService<UpdateHandler>();
+                var updateHandler = scope.ServiceProvider.GetRequiredService<IUpdateHandler>();
                 await updateHandler.HandleUpdateAsync(botClient, update, cancellationToken);
             },
             HandleErrorAsync,

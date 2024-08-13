@@ -7,9 +7,9 @@ namespace CPK_Bot.Services.Commands.AdminCommands;
 
 public class SetRoleCommand : ICommand
 {
-    private readonly ProfileService _profileService;
+    private readonly IProfileService _profileService;
 
-    public SetRoleCommand(ProfileService profileService)
+    public SetRoleCommand(IProfileService profileService)
     {
         _profileService = profileService;
     }

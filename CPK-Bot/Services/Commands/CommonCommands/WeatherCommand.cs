@@ -8,10 +8,10 @@ namespace CPK_Bot.Services.Commands.CommonCommands;
 
 public class WeatherCommand : ICommand
 {
-    private readonly WeatherService _weatherService;
+    private readonly IWeatherService _weatherService;
     private readonly ILogger<WeatherCommand> _logger;
 
-    public WeatherCommand(WeatherService weatherService, ILogger<WeatherCommand> logger)
+    public WeatherCommand(IWeatherService weatherService, ILogger<WeatherCommand> logger)
     {
         _weatherService = weatherService;
         _logger = logger;
