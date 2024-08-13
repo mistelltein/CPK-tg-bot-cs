@@ -14,9 +14,10 @@ public class HandleOtherCommand : ICommand
         _logger = logger;
     }
     
-    public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+    public Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
         _logger.LogWarning("Unknown command received: {Command}", message.Text);
+        return Task.CompletedTask;
     }
 }
