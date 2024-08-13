@@ -4,6 +4,9 @@ using Microsoft.Extensions.Configuration;
 using CPK_Bot.Data.Context;
 using CPK_Bot.Services;
 using CPK_Bot.Services.Commands;
+using CPK_Bot.Services.Commands.AdminCommands;
+using CPK_Bot.Services.Commands.CommonCommands;
+using CPK_Bot.Services.Commands.UserCommands;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 

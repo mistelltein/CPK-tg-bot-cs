@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace CPK_Bot.Services.Commands;
+namespace CPK_Bot.Services.Commands.CommonCommands;
 
 public class HandleOtherCommand : ICommand
 {

@@ -2,7 +2,7 @@ using CPK_Bot.Data.Context;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace CPK_Bot.Services.Commands;
+namespace CPK_Bot.Services.Commands.CommonCommands;
 
 public class HandleCommandsCommand : ICommand
 {

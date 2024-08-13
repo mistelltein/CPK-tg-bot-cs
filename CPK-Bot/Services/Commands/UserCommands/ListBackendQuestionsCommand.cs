@@ -1,15 +1,16 @@
 using CPK_Bot.Data.Context;
 using CPK_Bot.Entities;
+using CPK_Bot.Services.Commands.CommonCommands;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace CPK_Bot.Services.Commands;
+namespace CPK_Bot.Services.Commands.UserCommands;
 
-public class GiveBackendQuestionCommand : ICommand
+public class ListBackendQuestionsCommand : ICommand
 {
     private readonly QuestionService _questionService;
 
-    public GiveBackendQuestionCommand(QuestionService questionService)
+    public ListBackendQuestionsCommand(QuestionService questionService)
     {
         _questionService = questionService;
     }
@@ -17,6 +18,6 @@ public class GiveBackendQuestionCommand : ICommand
     public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        await _questionService.GiveQuestionAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
+        await _questionService.ListQuestionsAsync<BackendQuestion>(botClient, chatId, dbContext, cancellationToken);
     }
 }

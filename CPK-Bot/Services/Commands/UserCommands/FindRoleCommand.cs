@@ -1,9 +1,10 @@
 using CPK_Bot.Data.Context;
+using CPK_Bot.Services.Commands.CommonCommands;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace CPK_Bot.Services.Commands;
+namespace CPK_Bot.Services.Commands.UserCommands;
 
 public class FindRoleCommand : ICommand
 {

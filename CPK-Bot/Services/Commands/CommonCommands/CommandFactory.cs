@@ -1,8 +1,10 @@
+using CPK_Bot.Services.Commands.AdminCommands;
+using CPK_Bot.Services.Commands.UserCommands;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace CPK_Bot.Services.Commands;
+namespace CPK_Bot.Services.Commands.CommonCommands;
 
 public class CommandFactory
 {

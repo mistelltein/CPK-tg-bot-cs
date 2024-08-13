@@ -4,7 +4,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace CPK_Bot.Services.Commands;
+namespace CPK_Bot.Services.Commands.CommonCommands;
 
 public class WeatherCommand : ICommand
 {
