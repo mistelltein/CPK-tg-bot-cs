@@ -1,5 +1,5 @@
-using CPK_Bot.Models;
-using CPK_Bot.Models.Configurations;
+using CPK_Bot.Entities;
+using CPK_Bot.Entities.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace CPK_Bot.Data.Context;

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CPK_Bot.Models;
+namespace CPK_Bot.Entities;
 
 public class Question
 {

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace CPK_Bot.Models.Configurations;
+namespace CPK_Bot.Entities.Configurations;
 
 public class ProfileConfigurations : IEntityTypeConfiguration<Profile>
 {

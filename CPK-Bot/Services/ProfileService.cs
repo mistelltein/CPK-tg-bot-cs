@@ -1,5 +1,5 @@
 using CPK_Bot.Data.Context;
-using CPK_Bot.Models;
+using CPK_Bot.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
