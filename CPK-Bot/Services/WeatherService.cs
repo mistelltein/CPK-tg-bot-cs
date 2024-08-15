@@ -21,7 +21,7 @@ public class WeatherService : IWeatherService
 
     public async Task<string> GetWeatherAsync(string location, int days = 3)
     {
-        var url = $"http://api.weatherapi.com/v1/forecast.json?key={_apiKey}&q={location}&days={days}&aqi=no&alerts=no";
+        var url = $"https://api.weatherapi.com/v1/forecast.json?key={_apiKey}&q={location}&days={days}&aqi=no&alerts=no";
         var response = await _httpClient.GetStringAsync(url);
         var data = JObject.Parse(response);
 

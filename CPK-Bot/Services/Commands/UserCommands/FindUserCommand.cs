@@ -33,13 +33,15 @@ public class FindUserCommand : ICommand
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while displaying profile for user {Username}.", username);
-                await botClient.SendTextMessageAsync(chatId, "An error occurred while processing your request.", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "An error occurred while processing your request.", 
+                    cancellationToken: cancellationToken);
             }
         }
         else
         {
             _logger.LogWarning("Invalid format for /finduser command.");
-            await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /finduser @username", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /finduser @username", 
+                cancellationToken: cancellationToken);
         }
     }
 }

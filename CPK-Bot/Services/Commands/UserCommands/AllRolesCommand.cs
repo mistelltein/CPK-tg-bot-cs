@@ -45,7 +45,8 @@ public class AllRolesCommand : ICommand
         catch (Exception ex)
         {
             _logger.LogError("Error fetching roles: {ErrorMessage}", ex.Message);
-            await botClient.SendTextMessageAsync(chatId, "Failed to fetch roles. Please try again later.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Failed to fetch roles. Please try again later.", 
+                cancellationToken: cancellationToken);
         }
     }
 }

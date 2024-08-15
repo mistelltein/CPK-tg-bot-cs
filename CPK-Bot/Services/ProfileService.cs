@@ -125,12 +125,14 @@ public class ProfileService : IProfileService
         catch (DbUpdateException dbEx)
         {
             _logger.LogError("Database error: {DatabaseUpdateError}", dbEx.Message);
-            await botClient.SendTextMessageAsync(chatId, "A database error occurred. Please try again later.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "A database error occurred. Please try again later.", 
+                cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError("Error showing profile for user ID: {UserId}. Exception: {ErrorMessage}", userId, ex.Message);
-            await botClient.SendTextMessageAsync(chatId, "An error occurred while attempting to display the profile.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while attempting to display the profile.", 
+                cancellationToken: cancellationToken);
         }
     }
 
@@ -156,7 +158,8 @@ public class ProfileService : IProfileService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "You do not have permission to change the rating.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to change the rating.", 
+                cancellationToken: cancellationToken);
             return;
         }
 
@@ -170,7 +173,8 @@ public class ProfileService : IProfileService
 
             if (parts.Length != 2 || !int.TryParse(parts[1], out score))
             {
-                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /rate [score]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /rate [score]", 
+                    cancellationToken: cancellationToken);
                 return;
             }
         }
@@ -207,7 +211,8 @@ public class ProfileService : IProfileService
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var displayName = !string.IsNullOrEmpty(userProfile.Username) ? $"@{userProfile.Username}" : userProfile.FirstName ?? "NoName";
-        await botClient.SendTextMessageAsync(chatId, $"Social rating of user {displayName} is now {userProfile.Rating}.", cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"Social rating of user {displayName} is now {userProfile.Rating}.", 
+            cancellationToken: cancellationToken);
         _logger.LogInformation("Rating of user {DisplayName} updated to {UserRating}.", displayName, userProfile.Rating);
     }
 
@@ -216,7 +221,8 @@ public class ProfileService : IProfileService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "You do not have permission to change roles.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to change roles.", 
+                cancellationToken: cancellationToken);
             return;
         }
 
@@ -230,7 +236,8 @@ public class ProfileService : IProfileService
 
             if (parts.Length != 2)
             {
-                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /setrole [role]", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /setrole [role]", 
+                    cancellationToken: cancellationToken);
                 return;
             }
 
@@ -270,7 +277,8 @@ public class ProfileService : IProfileService
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var displayName = !string.IsNullOrEmpty(userProfile.Username) ? $"@{userProfile.Username}" : userProfile.FirstName ?? "NoName";
-        await botClient.SendTextMessageAsync(chatId, $"Role of user {displayName} is now {userProfile.Role}.", cancellationToken: cancellationToken);
+        await botClient.SendTextMessageAsync(chatId, $"Role of user {displayName} is now {userProfile.Role}.", 
+            cancellationToken: cancellationToken);
         _logger.LogInformation("Role of user {DisplayName} updated to {UserRole}.", displayName, userProfile.Role);
     }
 
@@ -279,7 +287,8 @@ public class ProfileService : IProfileService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "You do not have permission to ban users.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to ban users.", 
+                cancellationToken: cancellationToken);
             return;
         }
 
@@ -320,7 +329,8 @@ public class ProfileService : IProfileService
     {
         if (message.From?.Username != "arrogganz")
         {
-            await botClient.SendTextMessageAsync(chatId, "You do not have permission to unban users.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "You do not have permission to unban users.", 
+                cancellationToken: cancellationToken);
             return;
         }
 
@@ -336,7 +346,8 @@ public class ProfileService : IProfileService
             if (parts.Length != 2 || string.IsNullOrEmpty(parts[1]))
             {
                 await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /unban [username] " +
-                                                             "or reply to the user's message with the command /unban", cancellationToken: cancellationToken);
+                                                             "or reply to the user's message with the command /unban", 
+                    cancellationToken: cancellationToken);
                 return;
             }
 

@@ -18,6 +18,7 @@ public class AddFrontendQuestionCommand : ICommand
     public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        await _questionService.AddQuestionAsync<FrontendQuestion>(botClient, chatId, message.Text!, dbContext, cancellationToken, message);
+        await _questionService.AddQuestionAsync<FrontendQuestion>(botClient, chatId, message.Text!, dbContext, 
+            cancellationToken, message);
     }
 }

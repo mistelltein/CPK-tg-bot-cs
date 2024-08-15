@@ -24,7 +24,8 @@ public class QuizService : IQuizService
         var parts = messageText.Split('|');
         if (parts.Length < 4)
         {
-            await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /createquiz | <question> | <correct_option_id> | <option1> | <option2> | ...", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /createquiz | <question> | " +
+                                                         "<correct_option_id> | <option1> | <option2> | ...", cancellationToken: cancellationToken);
             return;
         }
 

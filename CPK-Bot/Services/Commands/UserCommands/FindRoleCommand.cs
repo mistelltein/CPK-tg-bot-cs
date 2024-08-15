@@ -25,7 +25,8 @@ public class FindRoleCommand : ICommand
 
         if (string.IsNullOrEmpty(role))
         {
-            await botClient.SendTextMessageAsync(chatId, "Please provide a role. Example: /findrole Python-Developer", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Please provide a role. Example: /findrole Python-Developer", 
+                cancellationToken: cancellationToken);
             return;
         }
 
@@ -36,17 +37,20 @@ public class FindRoleCommand : ICommand
             if (profiles.Count > 0)
             {
                 var response = string.Join("\n", profiles.Select(p => $"@{p.Username} - {p.FirstName}"));
-                await botClient.SendTextMessageAsync(chatId, $"Found the following users with role {role}:\n{response}", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, $"Found the following users with role {role}:\n{response}", 
+                    cancellationToken: cancellationToken);
             }
             else
             {
-                await botClient.SendTextMessageAsync(chatId, $"No users found with role {role}.", cancellationToken: cancellationToken);
+                await botClient.SendTextMessageAsync(chatId, $"No users found with role {role}.", 
+                    cancellationToken: cancellationToken);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching profiles by role {Role}.", role);
-            await botClient.SendTextMessageAsync(chatId, "Failed to fetch profiles by role. Please try again later.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Failed to fetch profiles by role. Please try again later.", 
+                cancellationToken: cancellationToken);
         }
     }
 }

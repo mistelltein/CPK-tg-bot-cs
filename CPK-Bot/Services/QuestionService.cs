@@ -94,7 +94,8 @@ public class QuestionService : IQuestionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error listing {Name} questions.", typeof(T).Name);
-            await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the list of questions.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the list of questions.", 
+                cancellationToken: cancellationToken);
         }
     }
 
@@ -130,7 +131,8 @@ public class QuestionService : IQuestionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error providing {Name} question.", typeof(T).Name);
-            await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the question.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while fetching the question.", 
+                cancellationToken: cancellationToken);
         }
     }
 }

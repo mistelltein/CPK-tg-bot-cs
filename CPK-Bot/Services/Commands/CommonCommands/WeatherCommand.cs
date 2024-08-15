@@ -25,19 +25,22 @@ public class WeatherCommand : ICommand
 
         if (string.IsNullOrEmpty(location))
         {
-            await botClient.SendTextMessageAsync(chatId, "Please provide a location. Example: /weather London", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Please provide a location. Example: /weather London", 
+                cancellationToken: cancellationToken);
             return;
         }
 
         try
         {
             var weatherInfo = await _weatherService.GetWeatherAsync(location);
-            await botClient.SendTextMessageAsync(chatId, weatherInfo, parseMode: ParseMode.Markdown, cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, weatherInfo, parseMode: ParseMode.Markdown, 
+                cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching weather data for location {Location}", location);
-            await botClient.SendTextMessageAsync(chatId, "Failed to fetch weather data. Please try again later.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "Failed to fetch weather data. Please try again later.", 
+                cancellationToken: cancellationToken);
         }
     }
 }
