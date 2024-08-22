@@ -374,10 +374,14 @@ public class ProfileService : IProfileService
             .Where(newMember => newMember.Id != botClient.BotId)
             .Select(async newMember =>
             {
+                var displayName = !string.IsNullOrEmpty(newMember.Username) 
+                    ? $"{newMember.Username}" 
+                    : newMember.FirstName;
+                
                 await RegisterUserAsync(newMember, "Newbie-Developer", dbContext, cancellationToken);
                 await botClient.SendTextMessageAsync(
                     chatId,
-                    $"Welcome, {newMember.Username}!\nCan you please introduce yourself?\nIf you have any questions, feel free to ask.",
+                    $"Welcome, {displayName}!\nCan you please introduce yourself?\nIf you have any questions, feel free to ask.",
                     replyToMessageId: message.MessageId,
                     cancellationToken: cancellationToken
                 );
@@ -402,12 +406,12 @@ public class ProfileService : IProfileService
         if (leftMember.Id != botClient.BotId)
         {
             var displayName = !string.IsNullOrEmpty(leftMember.Username) 
-                ? $"@{leftMember.Username}" 
+                ? $"{leftMember.Username}" 
                 : leftMember.FirstName;
             
             await botClient.SendTextMessageAsync(
                 chatId,
-                $"{leftMember.Username} left the chat. We hope they return soon!",
+                $"{displayName} left the chat. We hope they return soon!",
                 replyToMessageId: message.MessageId,
                 cancellationToken: cancellationToken
             );
