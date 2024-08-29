@@ -47,6 +47,7 @@ public class CommandFactory : ICommandFactory
                 _ when commandText.StartsWith("/findrole") => _serviceProvider.GetRequiredService<FindRoleCommand>(),
                 _ when commandText.StartsWith("/showallroles") => _serviceProvider.GetRequiredService<AllRolesCommand>(),
                 _ when commandText.StartsWith("/cleanup") => _serviceProvider.GetRequiredService<CleanupCommand>(),
+                _ when commandText.StartsWith("/sendmessage") => _serviceProvider.GetRequiredService<SendMessageCommand>(),
                 _ when commandText.Equals("бот", StringComparison.CurrentCultureIgnoreCase) => _serviceProvider.GetRequiredService<HandleBotCommand>(),
                 _ => _serviceProvider.GetRequiredService<HandleOtherCommand>()
             };

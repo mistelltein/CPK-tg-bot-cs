@@ -22,7 +22,22 @@ public class FindUserCommand : ICommand
     {
         var parts = message.Text?.Split(' ');
 
-        if (parts is { Length: 2 })
+        if (message.ReplyToMessage != null) 
+        {
+            var userId = message.ReplyToMessage.From!.Id;
+            try
+            {
+                await _profileService.ShowProfileAsync(botClient, chatId, userId, dbContext, cancellationToken);
+                _logger.LogInformation("Profile of user with ID {UserId} displayed successfully.", userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while displaying profile for user ID {UserId}.", userId);
+                await botClient.SendTextMessageAsync(chatId, "An error occurred while processing your request.", 
+                    cancellationToken: cancellationToken);
+            }
+        }
+        else if (parts is { Length: 2 }) 
         {
             var username = parts[1].TrimStart('@');
             try
@@ -40,7 +55,7 @@ public class FindUserCommand : ICommand
         else
         {
             _logger.LogWarning("Invalid format for /finduser command.");
-            await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /finduser @username", 
+            await botClient.SendTextMessageAsync(chatId, "Invalid command format. Use: /finduser @username or reply to a user's message.", 
                 cancellationToken: cancellationToken);
         }
     }

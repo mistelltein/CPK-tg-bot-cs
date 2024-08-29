@@ -70,5 +70,6 @@ internal static class Program
         services.AddTransient<StartCommand>();
         services.AddTransient<UnbanCommand>();
         services.AddTransient<WeatherCommand>();
+        services.AddTransient<SendMessageCommand>();
     }
 }
