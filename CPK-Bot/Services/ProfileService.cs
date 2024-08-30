@@ -319,9 +319,17 @@ public class ProfileService : IProfileService
             userId = profile.Id;
         }
 
-        await botClient.BanChatMemberAsync(chatId, userId, cancellationToken: cancellationToken);
-        await botClient.SendTextMessageAsync(chatId, "User has been banned.", cancellationToken: cancellationToken);
-        _logger.LogInformation("User was banned.");
+        try
+        {
+            await botClient.BanChatMemberAsync(chatId, userId, cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "User has been banned.", cancellationToken: cancellationToken);
+            _logger.LogInformation("User {UserId} was banned.", userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error banning user {UserId}.", userId);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while trying to ban the user.", cancellationToken: cancellationToken);
+        }
     }
     
     public async Task UnbanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
@@ -362,9 +370,17 @@ public class ProfileService : IProfileService
             userId = profile.Id;
         }
 
-        await botClient.UnbanChatMemberAsync(chatId, userId, cancellationToken: cancellationToken);
-        await botClient.SendTextMessageAsync(chatId, $"User has been unbanned.", cancellationToken: cancellationToken);
-        _logger.LogInformation("User {UserId} was unbanned.", userId);
+        try
+        {
+            await botClient.UnbanChatMemberAsync(chatId, userId, cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, $"User has been unbanned.", cancellationToken: cancellationToken);
+            _logger.LogInformation("User {UserId} was unbanned.", userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unbanning user {UserId}.", userId);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while trying to unban the user.", cancellationToken: cancellationToken);
+        }
     }
     
     public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, 

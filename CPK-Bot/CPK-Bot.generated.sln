@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CPK-Bot", "CPK-Bot.csproj", "{CC54ACCB-1BAA-49C9-9C43-7729F418A6A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CPK-Bot", "CPK-Bot.csproj", "{221CAC51-89FB-4B00-91EA-30B8338C3B99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CC54ACCB-1BAA-49C9-9C43-7729F418A6A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC54ACCB-1BAA-49C9-9C43-7729F418A6A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC54ACCB-1BAA-49C9-9C43-7729F418A6A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC54ACCB-1BAA-49C9-9C43-7729F418A6A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{221CAC51-89FB-4B00-91EA-30B8338C3B99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{221CAC51-89FB-4B00-91EA-30B8338C3B99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{221CAC51-89FB-4B00-91EA-30B8338C3B99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{221CAC51-89FB-4B00-91EA-30B8338C3B99}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
