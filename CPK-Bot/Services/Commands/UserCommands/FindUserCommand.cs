@@ -17,14 +17,14 @@ public class FindUserCommand : ICommand
         _logger = logger;
     }
     
-    public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+    public async Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var parts = message.Text?.Split(' ');
+        var parts = update.Message!.Text?.Split(' ');
 
-        if (message.ReplyToMessage != null) 
+        if (update.Message!.ReplyToMessage != null) 
         {
-            var userId = message.ReplyToMessage.From!.Id;
+            var userId = update.Message!.ReplyToMessage.From!.Id;
             try
             {
                 await _profileService.ShowProfileAsync(botClient, chatId, userId, dbContext, cancellationToken);

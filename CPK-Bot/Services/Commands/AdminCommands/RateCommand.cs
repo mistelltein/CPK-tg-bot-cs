@@ -14,9 +14,9 @@ public class RateCommand : ICommand
         _profileService = profileService;
     }
     
-    public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+    public async Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        await _profileService.RateCommandAsync(botClient, message, chatId, dbContext, cancellationToken);
+        await _profileService.RateCommandAsync(botClient, update.Message!, chatId, dbContext, cancellationToken);
     }
 }

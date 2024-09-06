@@ -8,7 +8,7 @@ namespace CPK_Bot.Services;
 
 public interface ICommandHandler
 {
-    Task HandleUpdateAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+    Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken);
 }
 
@@ -25,18 +25,18 @@ public class CommandHandler : ICommandHandler
         _profileService = profileService;
     }
 
-    public async Task HandleUpdateAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, 
+    public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext, 
         CancellationToken cancellationToken)
     {
-        if (message.From != null)
+        if (update.Message!.From != null)
         {
-            await _profileService.RegisterUserAsync(message.From, "Newbie-Developer", dbContext, cancellationToken);
+            await _profileService.RegisterUserAsync(update.Message!.From, "Newbie-Developer", dbContext, cancellationToken);
         }
 
-        _logger.LogInformation("Received message of type {MessageType}: {MessageText}", message.Type, message.Text);
+        _logger.LogInformation("Received message of type {MessageType}: {MessageText}", update.Message!.Type, update.Message!.Text);
 
-        var command = _commandFactory.GetCommand(message);
+        var command = _commandFactory.GetCommand(update);
 
-        await command.ExecuteAsync(botClient, message, chatId, dbContext, cancellationToken);
+        await command.ExecuteAsync(botClient, update, chatId, dbContext, cancellationToken);
     }
 }

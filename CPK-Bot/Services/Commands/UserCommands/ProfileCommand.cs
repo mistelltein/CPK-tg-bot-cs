@@ -14,9 +14,9 @@ public class ProfileCommand : ICommand
         _profileService = profileService;
     }
     
-    public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+    public async Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        await _profileService.ShowProfileAsync(botClient, chatId, message.From!.Id, dbContext, cancellationToken);
+        await _profileService.ShowProfileAsync(botClient, chatId, update.Message!.From!.Id, dbContext, cancellationToken);
     }
 }

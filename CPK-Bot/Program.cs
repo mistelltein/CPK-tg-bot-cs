@@ -60,6 +60,7 @@ internal static class Program
         services.AddTransient<GiveFrontendQuestionCommand>();
         services.AddTransient<HandleBotCommand>();
         services.AddTransient<HandleCommandsCommand>();
+        services.AddTransient<HandleChatMemberUpdatedCommand>();
         services.AddTransient<HandleMessageTypeCommand>();
         services.AddTransient<HandleOtherCommand>();
         services.AddTransient<ListBackendQuestionsCommand>();

@@ -6,6 +6,6 @@ namespace CPK_Bot.Services.Commands.CommonCommands;
 
 public interface  ICommand
 {
-    Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, 
+    Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext, 
         CancellationToken cancellationToken);
 }

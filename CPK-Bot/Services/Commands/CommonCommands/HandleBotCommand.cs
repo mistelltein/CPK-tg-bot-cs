@@ -7,10 +7,10 @@ namespace CPK_Bot.Services.Commands.CommonCommands;
 
 public class HandleBotCommand : ICommand
 {
-    public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+    public async Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var response = message.Chat.Type switch
+        var response = update.Message!.Chat.Type switch
         {
             ChatType.Private => "Hi! How can I help you?",
             ChatType.Supergroup => "How can I assist you?",

@@ -19,17 +19,17 @@ public class SendMessageCommand : ICommand
         _adminChatId = long.Parse(configuration["AdminChatId"]!); 
     }
 
-    public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext, 
+    public async Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext, 
         CancellationToken cancellationToken)
     {
-        if (message.From?.Username != "arrogganz") 
+        if (update.Message!.From?.Username != "arrogganz") 
         {
             await botClient.SendTextMessageAsync(chatId, "You do not have permission to use this command.", 
                 cancellationToken: cancellationToken);
             return;
         }
 
-        var messageParts = message.Text?.Split(' ', 2);
+        var messageParts = update.Message!.Text?.Split(' ', 2);
 
         if (messageParts == null || messageParts.Length < 2)
         {
@@ -47,7 +47,7 @@ public class SendMessageCommand : ICommand
             await botClient.SendTextMessageAsync(chatId, "The message was successfully delivered", 
                 cancellationToken: cancellationToken);
 
-            _logger.LogInformation("Message from {Username} was sent to admin: {Message}", message.From.Username, adminMessage);
+            _logger.LogInformation("Message from {Username} was sent to admin: {Message}", update.Message!.From.Username, adminMessage);
         }
         catch (Exception ex)
         {

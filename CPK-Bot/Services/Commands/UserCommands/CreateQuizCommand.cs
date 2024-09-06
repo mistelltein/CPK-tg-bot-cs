@@ -14,9 +14,9 @@ public class CreateQuizCommand : ICommand
         _quizService = quizService;
     }
     
-    public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+    public async Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        await _quizService.CreateAndSendQuizAsync(botClient, chatId, message.Text!, cancellationToken);
+        await _quizService.CreateAndSendQuizAsync(botClient, chatId, update.Message!.Text!, cancellationToken);
     }
 }

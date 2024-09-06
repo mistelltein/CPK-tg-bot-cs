@@ -17,7 +17,7 @@ public class CleanupCommand : ICommand
         _logger = logger;
     }
     
-    public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+    public async Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
         await botClient.SendTextMessageAsync(chatId, "Starting cleanup...", cancellationToken: cancellationToken);

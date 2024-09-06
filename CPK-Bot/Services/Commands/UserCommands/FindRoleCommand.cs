@@ -17,10 +17,10 @@ public class FindRoleCommand : ICommand
         _logger = logger;
     }
     
-    public async Task ExecuteAsync(ITelegramBotClient botClient, Message message, long chatId, BotDbContext dbContext,
+    public async Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var parts = message.Text?.Split(' ');
+        var parts = update.Message!.Text?.Split(' ');
         var role = parts?.Skip(1).FirstOrDefault();
 
         if (string.IsNullOrEmpty(role))

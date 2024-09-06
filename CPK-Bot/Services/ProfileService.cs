@@ -328,7 +328,8 @@ public class ProfileService : IProfileService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error banning user {UserId}.", userId);
-            await botClient.SendTextMessageAsync(chatId, "An error occurred while trying to ban the user.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while trying to ban the user.", 
+                cancellationToken: cancellationToken);
         }
     }
     
@@ -379,7 +380,8 @@ public class ProfileService : IProfileService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unbanning user {UserId}.", userId);
-            await botClient.SendTextMessageAsync(chatId, "An error occurred while trying to unban the user.", cancellationToken: cancellationToken);
+            await botClient.SendTextMessageAsync(chatId, "An error occurred while trying to unban the user.", 
+                cancellationToken: cancellationToken);
         }
     }
     
