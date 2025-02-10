@@ -22,7 +22,7 @@ public class SendMessageCommand : ICommand
     public async Task ExecuteAsync(ITelegramBotClient botClient, Update update, long chatId, BotDbContext dbContext, 
         CancellationToken cancellationToken)
     {
-        if (update.Message!.From?.Username != "arrogganz") 
+        if (update.Message!.From?.Username != "mistelltein") 
         {
             await botClient.SendTextMessageAsync(chatId, "You do not have permission to use this command.", 
                 cancellationToken: cancellationToken);

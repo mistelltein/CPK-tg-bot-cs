@@ -156,7 +156,7 @@ public class ProfileService : IProfileService
     public async Task RateCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
         BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        if (message.From?.Username != "arrogganz")
+        if (message.From?.Username != "mistelltein")
         {
             await botClient.SendTextMessageAsync(chatId, "You do not have permission to change the rating.", 
                 cancellationToken: cancellationToken);
@@ -219,7 +219,7 @@ public class ProfileService : IProfileService
     public async Task SetRoleCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
         BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        if (message.From?.Username != "arrogganz")
+        if (message.From?.Username != "mistelltein")
         {
             await botClient.SendTextMessageAsync(chatId, "You do not have permission to change roles.", 
                 cancellationToken: cancellationToken);
@@ -285,7 +285,7 @@ public class ProfileService : IProfileService
     public async Task BanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
         BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        if (message.From?.Username != "arrogganz")
+        if (message.From?.Username != "mistelltein")
         {
             await botClient.SendTextMessageAsync(chatId, "You do not have permission to ban users.", 
                 cancellationToken: cancellationToken);
@@ -336,7 +336,7 @@ public class ProfileService : IProfileService
     public async Task UnbanCommandAsync(ITelegramBotClient botClient, Message message, long chatId, 
         BotDbContext dbContext, CancellationToken cancellationToken)
     {
-        if (message.From?.Username != "arrogganz")
+        if (message.From?.Username != "mistelltein")
         {
             await botClient.SendTextMessageAsync(chatId, "You do not have permission to unban users.", 
                 cancellationToken: cancellationToken);

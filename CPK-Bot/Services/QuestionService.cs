@@ -32,7 +32,7 @@ public class QuestionService : IQuestionService
     public async Task AddQuestionAsync<T>(ITelegramBotClient botClient, long chatId, string messageText, 
         BotDbContext dbContext, CancellationToken cancellationToken, Message message) where T : Question, new()
     {
-        if (message.From?.Username != "arrogganz")
+        if (message.From?.Username != "mistelltein")
         {
             await botClient.SendTextMessageAsync(chatId, "You do not have permission to add questions.", 
                 cancellationToken: cancellationToken);
