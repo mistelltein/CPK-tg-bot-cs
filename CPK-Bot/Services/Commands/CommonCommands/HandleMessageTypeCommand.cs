@@ -20,7 +20,7 @@ public class HandleMessageTypeCommand : ICommand
         switch (update.Message!.Type)
         {
             case MessageType.ChatMembersAdded:
-                await _profileService.WelcomeNewMembersAsync(botClient, update.Message!, chatId, cancellationToken, dbContext);
+                await _profileService.WelcomeNewMembersAsync(botClient, update.Message!, chatId, cancellationToken);
                 break;
             case MessageType.ChatMemberLeft when update.Message!.LeftChatMember is not null:
                 await _profileService.FarewellMemberAsync(botClient, update.Message!, chatId, cancellationToken);

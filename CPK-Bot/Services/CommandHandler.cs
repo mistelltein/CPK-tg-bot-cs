@@ -30,7 +30,7 @@ public class CommandHandler : ICommandHandler
     {
         if (update.Message!.From != null)
         {
-            await _profileService.RegisterUserAsync(update.Message!.From, "Newbie-Developer", dbContext, cancellationToken);
+            await _profileService.RegisterUserAsync(update.Message!.From, "Newbie-Developer", cancellationToken);
         }
 
         _logger.LogInformation("Received message of type {MessageType}: {MessageText}", update.Message!.Type, update.Message!.Text);

@@ -1,6 +1,7 @@
 using CPK_Bot.Data.Context;
 using CPK_Bot.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -9,7 +10,7 @@ namespace CPK_Bot.Services;
 
 public interface IProfileService
 {
-    Task RegisterUserAsync(User user, string role, BotDbContext dbContext, CancellationToken cancellationToken);
+    Task RegisterUserAsync(User user, string role, CancellationToken cancellationToken);
 
     Task ShowProfileAsync(ITelegramBotClient botClient, long chatId, long userId,
         BotDbContext dbContext, CancellationToken cancellationToken);
@@ -30,7 +31,7 @@ public interface IProfileService
         BotDbContext dbContext, CancellationToken cancellationToken);
 
     Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId,
-        CancellationToken cancellationToken, BotDbContext dbContext);
+        CancellationToken cancellationToken);
 
     Task FarewellMemberAsync(ITelegramBotClient botClient, Message message, long chatId,
         CancellationToken cancellationToken);
@@ -45,18 +46,24 @@ public interface IProfileService
 
 public class ProfileService : IProfileService
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ProfileService> _logger;
 
-    public ProfileService(ILogger<ProfileService> logger)
+    public ProfileService(IServiceProvider serviceProvider, ILogger<ProfileService> logger)
     {
+        _serviceProvider = serviceProvider;
         _logger = logger;
     }
 
-    public async Task RegisterUserAsync(User user, string role, BotDbContext dbContext, CancellationToken cancellationToken)
+    public async Task RegisterUserAsync(User user, string role, CancellationToken cancellationToken)
     {
+        using var scope = _serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
         try
         {
             var existingProfile = await dbContext.Profiles
+                .AsNoTracking()
                 .SingleOrDefaultAsync(p => p.Id == user.Id, cancellationToken);
 
             if (existingProfile == null)
@@ -73,21 +80,9 @@ public class ProfileService : IProfileService
             }
             else
             {
-                var changed = false;
-                if (existingProfile.Username != user.Username)
-                {
-                    existingProfile.Username = user.Username;
-                    changed = true;
-                }
-                if (existingProfile.FirstName != user.FirstName)
-                {
-                    existingProfile.FirstName = user.FirstName;
-                    changed = true;
-                }
-                if (changed)
-                {
-                    dbContext.Profiles.Update(existingProfile);
-                }
+                existingProfile.Username = user.Username;
+                existingProfile.FirstName = user.FirstName;
+                dbContext.Profiles.Update(existingProfile);
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -385,18 +380,17 @@ public class ProfileService : IProfileService
         }
     }
     
-    public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, 
-        CancellationToken cancellationToken, BotDbContext dbContext)
+    public async Task WelcomeNewMembersAsync(ITelegramBotClient botClient, Message message, long chatId, CancellationToken cancellationToken)
     {
         var tasks = message.NewChatMembers!
             .Where(newMember => newMember.Id != botClient.BotId)
             .Select(async newMember =>
             {
-                var displayName = !string.IsNullOrEmpty(newMember.Username) 
-                    ? $"{newMember.Username}" 
-                    : newMember.FirstName;
-                
-                await RegisterUserAsync(newMember, "Newbie-Developer", dbContext, cancellationToken);
+                using var scope = _serviceProvider.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<BotDbContext>();
+
+                var displayName = !string.IsNullOrEmpty(newMember.Username) ? newMember.Username : newMember.FirstName;
+                await RegisterUserAsync(newMember, "Newbie-Developer", cancellationToken);
                 await botClient.SendTextMessageAsync(
                     chatId,
                     $"Welcome, {displayName}!\nCan you please introduce yourself?\nIf you have any questions, feel free to ask.",
@@ -408,12 +402,11 @@ public class ProfileService : IProfileService
         try
         {
             await Task.WhenAll(tasks);
-            await dbContext.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("New members welcomed successfully.");
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
-            _logger.LogError("Error saving changes: {ErrorMessage}", ex.Message);
+            _logger.LogError("Error welcoming new members: {ErrorMessage}", ex.Message);
         }
     }
 
